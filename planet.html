@@ -62,8 +62,14 @@
         <div class="planeta-hero-inner">
 
           <div class="planeta-visual">
-            <div id="planeta-esfera-hero" class="planeta-esfera-hero" style="width:140px;height:140px"></div>
-            <div id="escala-label" style="font-size:0.75rem;color:var(--text-2);text-align:center"></div>
+            <div id="planeta-esfera-hero" class="planeta-esfera-hero" style="width:160px;height:160px;position:relative;overflow:hidden">
+              <img id="planeta-img" src="" alt=""
+                style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity 0.4s"
+                onload="this.style.opacity='1'"
+                onerror="this.src=this.dataset.fallback;this.onerror=null" />
+            </div>
+            <div id="escala-label" style="font-size:0.72rem;color:var(--text-2);text-align:center;margin-top:0.25rem"></div>
+            <div id="imagen-credito" style="font-size:0.65rem;color:var(--text-2);opacity:0.6;text-align:center"></div>
           </div>
 
           <div class="planeta-hero-info">
@@ -170,8 +176,15 @@
 
       // Esfera hero
       const esfera = document.getElementById('planeta-esfera-hero');
-      esfera.style.background  = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color} 60%, ${planeta.colorSecundario})`;
-      esfera.style.boxShadow   = `inset -6px -6px 16px rgba(0,0,0,0.45), 0 0 40px ${planeta.color}44`;
+      // Gradiente como fondo base (visible mientras carga la imagen o si falla)
+      esfera.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color} 60%, ${planeta.colorSecundario})`;
+      esfera.style.boxShadow  = `inset -6px -6px 16px rgba(0,0,0,0.45), 0 0 50px ${planeta.color}55`;
+      // Imagen NASA
+      const img = document.getElementById('planeta-img');
+      img.src = planeta.imagen || '';
+      img.dataset.fallback = planeta.imagenFallback || '';
+      img.alt = planeta.nombre;
+      document.getElementById('imagen-credito').textContent = planeta.imagenCredito ? `Imagen: ${planeta.imagenCredito}` : '';
 
       // Header info
       document.getElementById('planeta-simbolo').textContent = planeta.simbolo || '';

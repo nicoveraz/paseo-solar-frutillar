@@ -4,7 +4,7 @@
 // El Sol (diámetro 35 cm) está en el centro de la costanera de Frutillar
 const ESCALA = 1 / 3977140000;
 const SOL_COORDS = { lat: -41.143448, lng: -73.024236 };
-const RUMBO_COSTANERA = 90; // grados (hacia el este)
+const RUMBO_COSTANERA = 129.20; // grados — bearing real del Paseo Costanera Frutillar (sureste)
 
 // Calcula coordenadas GPS a partir de una distancia en metros y un rumbo
 function calcularCoordenadas(distanciaMetros, rumbo) {
@@ -37,6 +37,9 @@ const SISTEMA_SOLAR = {
     tipo: 'estrella',
     color: '#fdb813',
     colorSecundario: '#ff6b00',
+    imagen: 'https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_0193.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA03149.jpg',
+    imagenCredito: 'NASA/SDO',
     diametroReal: 1391000,
     diametroModelo: 35,
     distanciaRealSol: 0,
@@ -62,6 +65,9 @@ const SISTEMA_SOLAR = {
     tipo: 'planeta terrestre',
     color: '#b5b5b5',
     colorSecundario: '#8a8a8a',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia15162-mercury-basins-messenger-16x9-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA15162.jpg',
+    imagenCredito: 'NASA/MESSENGER',
     diametroReal: 4879,
     diametroModelo: 0.1227,
     distanciaRealSol: 57.9,
@@ -76,7 +82,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '0' },
       { label: 'Distancia al Sol', valor: '57,9 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.024062 }
+    coords: { lat: -41.143531, lng: -73.024101 }
   },
 
   venus: {
@@ -87,6 +93,9 @@ const SISTEMA_SOLAR = {
     tipo: 'planeta terrestre',
     color: '#e8cda0',
     colorSecundario: '#c9a84c',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/venus-mariner-10-pia23791-fig2-16x9-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA00271.jpg',
+    imagenCredito: 'NASA/Mariner 10',
     diametroReal: 12104,
     diametroModelo: 0.3042,
     distanciaRealSol: 108.2,
@@ -101,7 +110,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '0' },
       { label: 'Distancia al Sol', valor: '108,2 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.023911 }
+    coords: { lat: -41.143603, lng: -73.023984 }
   },
 
   tierra: {
@@ -112,6 +121,9 @@ const SISTEMA_SOLAR = {
     tipo: 'planeta terrestre',
     color: '#4fa3e0',
     colorSecundario: '#2e7d32',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg',
+    imagenFallback: 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/globe_east_2048.jpg',
+    imagenCredito: 'NASA/Apollo 17',
     diametroReal: 12742,
     diametroModelo: 0.3203,
     distanciaRealSol: 149.6,
@@ -135,7 +147,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '1 (Luna)' },
       { label: 'Distancia al Sol', valor: '149,6 millones de km (1 UA)' }
     ],
-    coords: { lat: -41.143448, lng: -73.023787 }
+    coords: { lat: -41.143662, lng: -73.023888 }
   },
 
   marte: {
@@ -146,6 +158,9 @@ const SISTEMA_SOLAR = {
     tipo: 'planeta terrestre',
     color: '#c1440e',
     colorSecundario: '#8b3a0e',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/mars-full-globe-16x9-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA00407.jpg',
+    imagenCredito: 'NASA/Viking',
     diametroReal: 6779,
     diametroModelo: 0.1704,
     distanciaRealSol: 227.9,
@@ -177,7 +192,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '2 (Fobos y Deimos)' },
       { label: 'Distancia al Sol', valor: '227,9 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.023553 }
+    coords: { lat: -41.143774, lng: -73.023706 }
   },
 
   jupiter: {
@@ -188,6 +203,9 @@ const SISTEMA_SOLAR = {
     tipo: 'gigante gaseoso',
     color: '#c88b3a',
     colorSecundario: '#8b5e1a',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/jupiter-marble-pia22946-16x9-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA02873.jpg',
+    imagenCredito: 'NASA/Juno',
     diametroReal: 139820,
     diametroModelo: 3.515,
     distanciaRealSol: 778.5,
@@ -235,7 +253,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '95' },
       { label: 'Distancia al Sol', valor: '778,5 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.021901 }
+    coords: { lat: -41.144561, lng: -73.022424 }
   },
 
   saturno: {
@@ -246,6 +264,9 @@ const SISTEMA_SOLAR = {
     tipo: 'gigante gaseoso',
     color: '#e4d191',
     colorSecundario: '#b8a040',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2023/05/saturn-farewell-pia21345-sse-banner-1920x640-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA04913.jpg',
+    imagenCredito: 'NASA/Cassini',
     diametroReal: 116460,
     diametroModelo: 2.929,
     distanciaRealSol: 1432,
@@ -269,7 +290,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '146' },
       { label: 'Distancia al Sol', valor: '1.432 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.019940 }
+    coords: { lat: -41.145496, lng: -73.020901 }
   },
 
   urano: {
@@ -280,6 +301,9 @@ const SISTEMA_SOLAR = {
     tipo: 'gigante de hielo',
     color: '#7de8e8',
     colorSecundario: '#4bb8b8',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/uranus-pia18182-16x9-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA18182.jpg',
+    imagenCredito: 'NASA/Voyager 2',
     diametroReal: 50724,
     diametroModelo: 1.275,
     distanciaRealSol: 2867,
@@ -299,7 +323,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '27' },
       { label: 'Distancia al Sol', valor: '2.867 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.015609 }
+    coords: { lat: -41.147559, lng: -73.017541 }
   },
 
   neptuno: {
@@ -310,6 +334,9 @@ const SISTEMA_SOLAR = {
     tipo: 'gigante de hielo',
     color: '#4b70dd',
     colorSecundario: '#2a3fa0',
+    imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia01492-neptune-full-disk-16x9-1.jpg',
+    imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA01492.jpg',
+    imagenCredito: 'NASA/Voyager 2',
     diametroReal: 49244,
     diametroModelo: 1.238,
     distanciaRealSol: 4495,
@@ -333,7 +360,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '16' },
       { label: 'Distancia al Sol', valor: '4.495 millones de km' }
     ],
-    coords: { lat: -41.143448, lng: -73.010716 }
+    coords: { lat: -41.149881, lng: -73.013759 }
   }
 };
 
