@@ -14,7 +14,7 @@
     // Función helper disponible en window.sha256 después de cargar la página.
 
     // SHA-256 de "paseo" (cámbialo)
-    const PIN_HASH = 'b94f6f125c79e3a5ffaa826f584c10d52ada669e6762051b826b55776d05a15a';
+    const PIN_HASH = '68a32dd6b2c35412abbf319675fa086748a052cb8693e503111c32179e921d48';
 
     async function sha256(str) {
       const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
