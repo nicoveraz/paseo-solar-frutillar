@@ -6,6 +6,81 @@
   <title>Configurar Paseo — Paseo Solar Frutillar</title>
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- PIN gate: ejecutado antes que cualquier otra cosa -->
+  <script>
+  (function () {
+    // Hash SHA-256 del PIN. Para cambiarlo, abre la consola del navegador y ejecuta:
+    //   sha256('tu_pin_nuevo')  →  copia el resultado y reemplaza PIN_HASH
+    // Función helper disponible en window.sha256 después de cargar la página.
+
+    // SHA-256 de "paseo" (cámbialo)
+    const PIN_HASH = 'b94f6f125c79e3a5ffaa826f584c10d52ada669e6762051b826b55776d05a15a';
+
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+    window.sha256 = sha256; // exponer para facilitar cambio de PIN en consola
+
+    const SESSION_KEY = 'psfAuth';
+
+    // Si ya está autenticado en esta sesión, no bloquear
+    if (sessionStorage.getItem(SESSION_KEY) === PIN_HASH) return;
+
+    // Bloquear el body hasta que se autentique
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.createElement('div');
+      overlay.id = 'pin-overlay';
+      overlay.style.cssText = `
+        position:fixed;inset:0;z-index:9999;
+        background:var(--bg,#0a0a0f);
+        display:flex;flex-direction:column;
+        align-items:center;justify-content:center;
+        gap:1rem;padding:2rem;
+      `;
+      overlay.innerHTML = `
+        <div style="width:36px;height:36px;background:radial-gradient(circle at 40% 35%,#fffacc,#fdb813 50%,#e06000);border-radius:50%;box-shadow:0 0 24px rgba(253,184,19,0.6)"></div>
+        <h2 style="font-family:Inter,sans-serif;font-size:1.1rem;font-weight:600;color:#e2e2ea;margin:0">Paseo Solar — Configuración</h2>
+        <div style="background:#111118;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:1.5rem;width:100%;max-width:280px;display:flex;flex-direction:column;gap:0.75rem">
+          <label style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#777788;font-family:Inter,sans-serif">PIN de acceso</label>
+          <input id="pin-input" type="password" inputmode="numeric" placeholder="••••"
+            style="background:#18181f;border:1px solid rgba(255,255,255,0.14);border-radius:8px;padding:0.6rem 0.875rem;color:#e2e2ea;font-size:1.1rem;font-family:monospace;outline:none;letter-spacing:0.2em;text-align:center"
+            autofocus autocomplete="off" />
+          <div id="pin-error" style="font-size:0.75rem;color:#e05050;text-align:center;display:none;font-family:Inter,sans-serif">PIN incorrecto</div>
+          <button id="pin-btn"
+            style="background:#fdb813;color:#000;border:none;border-radius:8px;padding:0.6rem;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">
+            Acceder
+          </button>
+        </div>
+        <p style="font-size:0.72rem;color:rgba(119,119,136,0.6);font-family:Inter,sans-serif;margin:0">
+          <a href="index.html" style="color:rgba(119,119,136,0.6)">← Volver al sitio</a>
+        </p>
+      `;
+      document.body.appendChild(overlay);
+
+      const input = overlay.querySelector('#pin-input');
+      const btn   = overlay.querySelector('#pin-btn');
+      const err   = overlay.querySelector('#pin-error');
+
+      async function attempt() {
+        const hash = await sha256(input.value.trim());
+        if (hash === PIN_HASH) {
+          sessionStorage.setItem(SESSION_KEY, PIN_HASH);
+          overlay.remove();
+        } else {
+          err.style.display = 'block';
+          input.value = '';
+          input.focus();
+          input.style.borderColor = '#e05050';
+          setTimeout(() => { input.style.borderColor = ''; err.style.display = 'none'; }, 2000);
+        }
+      }
+
+      btn.addEventListener('click', attempt);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+    });
+  })();
+  </script>
   <style>
     body { overflow: hidden; }
 
