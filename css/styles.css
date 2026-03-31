@@ -197,6 +197,8 @@ code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875em; backg
   overflow: hidden;
   border: 1px solid var(--border);
   margin-bottom: 3rem;
+  position: relative;
+  isolation: isolate; /* contiene z-indexes internos de Leaflet */
 }
 #mapa { height: 420px; width: 100%; background: #0a0a1a; }
 @media (min-width: 768px) { #mapa { height: 500px; } }
