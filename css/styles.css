@@ -360,8 +360,10 @@ code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875em; backg
   gap: 0.5rem;
 }
 .planeta-esfera-hero {
-  border-radius: 50%;
+  border-radius: 10px;
   animation: float 6s ease-in-out infinite;
+  overflow: hidden;
+  background: rgba(0,0,0,0.35);
 }
 @keyframes float {
   0%,100% { transform: translateY(0); }

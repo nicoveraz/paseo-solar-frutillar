@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurar Paseo — Paseo Solar Frutillar</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { overflow: hidden; }
+
+    /* Layout: mapa + panel lateral */
+    .layout {
+      display: flex;
+      height: calc(100vh - 49px); /* descontar header */
+      position: relative;
+    }
+
+    #mapa-config {
+      flex: 1;
+      background: #0a0a1a;
+    }
+
+    /* Panel lateral */
+    .panel {
+      width: 320px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-section {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-section:last-child { border-bottom: none; }
+
+    .panel-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-2);
+      margin-bottom: 0.625rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .input-row label {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      width: 100px;
+      flex-shrink: 0;
+    }
+    .input-field {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 6px;
+      padding: 0.4rem 0.625rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: var(--font);
+      outline: none;
+      width: 100%;
+    }
+    .input-field:focus { border-color: var(--accent); }
+
+    .coords-display {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-2);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: border-color var(--transition);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .coords-display:hover { border-color: var(--border-hi); }
+    .coords-display span { color: var(--accent); }
+
+    .scale-badge {
+      display: inline-block;
+      background: rgba(253,184,19,0.1);
+      border: 1px solid rgba(253,184,19,0.25);
+      color: var(--accent);
+      padding: 0.25rem 0.625rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 0.625rem;
+    }
+
+    /* Tabla de planetas */
+    .planet-config-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .planet-config-item {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.625rem;
+      background: var(--surface-2);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .planet-config-item:hover { background: var(--bg); }
+    .planet-config-item.active { background: var(--bg); border: 1px solid var(--border-hi); }
+    .planet-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .planet-config-info { flex: 1; min-width: 0; }
+    .planet-config-name { font-weight: 600; }
+    .planet-config-dist { color: var(--text-2); font-size: 0.72rem; }
+    .planet-config-coords { color: var(--text-2); font-size: 0.68rem; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .planet-config-lock {
+      color: var(--text-2);
+      cursor: pointer;
+      padding: 0.15rem;
+    }
+    .planet-config-lock.locked { color: var(--accent); }
+
+    /* Instrucción flotante en mapa */
+    #map-instruction {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(10,10,15,0.9);
+      border: 1px solid var(--border-hi);
+      border-radius: 20px;
+      padding: 0.4rem 1rem;
+      font-size: 0.82rem;
+      color: var(--text);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Botones del panel */
+    .panel-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    /* Bearing visual */
+    .bearing-visual {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .bearing-compass {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border-hi);
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+      background: var(--surface-2);
+    }
+    .bearing-needle {
+      position: absolute;
+      width: 2px;
+      height: 16px;
+      background: var(--accent);
+      left: 50%;
+      top: 4px;
+      transform-origin: bottom center;
+      transform: translateX(-50%);
+      border-radius: 1px;
+    }
+    .bearing-label {
+      font-size: 0.78rem;
+      color: var(--text-2);
+      flex: 1;
+    }
+
+    /* Export modal */
+    #export-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #export-modal.open { display: flex; }
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 560px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .modal-box h3 { font-size: 1rem; }
+    .modal-textarea {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.72rem;
+      resize: none;
+      min-height: 260px;
+      outline: none;
+    }
+    .modal-footer { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+    /* Responsive: panel abajo en mobile */
+    @media (max-width: 640px) {
+      .layout { flex-direction: column; height: calc(100vh - 49px); }
+      #mapa-config { flex: 1; }
+      .panel { width: 100%; height: 280px; border-left: none; border-top: 1px solid var(--border); }
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--surface) !important; color: var(--text) !important;
+      border: 1px solid var(--border-hi) !important; border-radius: var(--radius) !important;
+    }
+    .leaflet-popup-tip-container { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="index.html" class="site-logo">
+        <div class="sol-icon"></div>
+        <div class="site-logo-text">
+          <strong>Paseo Solar Frutillar</strong>
+          <span>Herramienta de configuración</span>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html" class="nav-link">
+          <span class="material-symbols-outlined">arrow_back</span> Sitio
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Mapa principal -->
+    <div style="position:relative;flex:1">
+      <div id="mapa-config"></div>
+      <div id="map-instruction">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">touch_app</span>
+        Haz clic en el mapa para colocar el Sol
+      </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <aside class="panel">
+
+      <!-- Sol -->
+      <div class="panel-section">
+        <div class="panel-label">
+          <span class="material-symbols-outlined" style="font-size:14px">sunny</span>
+          Posición del Sol
+        </div>
+        <div class="coords-display" id="sun-coords-display" title="Haz clic para copiar" onclick="copiarCoords()">
+          <span id="sun-lat">—</span>
+          <span id="sun-lng">—</span>
+          <span class="material-symbols-outlined" style="font-size:14px;opacity:0.5">content_copy</span>
+        </div>
+        <div class="input-row">
+          <label>⌀ modelo Sol</label>
+          <input type="number" id="sun-diameter" class="input-field" value="35" min="1" max="200" step="1" /> <span style="font-size:0.78rem;color:var(--text-2)">cm</span>
+        </div>
+        <div>
+          <div class="scale-badge" id="scale-display">Escala 1:3.977.140.000</div>
+          <div style="font-size:0.72rem;color:var(--text-2)">Neptuno a <span id="neptune-dist">1.132 m</span> del Sol</div>
+        </div>
+      </div>
+
+      <!-- Rumbo costanera -->
+      <div class="panel-section">
+        <div class="panel-label">
+          <span class="material-symbols-outlined" style="font-size:14px">explore</span>
+          Rumbo de la costanera
+        </div>
+        <div class="bearing-visual">
+          <div class="bearing-compass">
+            <div class="bearing-needle" id="bearing-needle"></div>
+          </div>
+          <div class="bearing-label">
+            <input type="number" id="bearing-input" class="input-field" value="129.2" min="0" max="359" step="0.1" style="margin-bottom:0.25rem" />
+            <div style="font-size:0.7rem">0° = norte · 90° = este · 180° = sur</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planetas -->
+      <div class="panel-section" style="flex:1">
+        <div class="panel-label" style="justify-content:space-between">
+          <span style="display:flex;align-items:center;gap:0.35rem">
+            <span class="material-symbols-outlined" style="font-size:14px">public</span>
+            Pedestales
+          </span>
+          <span style="font-size:0.68rem;color:var(--text-2)">
+            <span class="material-symbols-outlined" style="font-size:12px;vertical-align:middle">lock</span> = posición fijada
+          </span>
+        </div>
+        <div class="planet-config-list" id="planet-config-list"></div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="panel-section">
+        <div class="panel-label">
+          <span class="material-symbols-outlined" style="font-size:14px">settings</span>
+          Acciones
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-primary" onclick="exportarConfig()" style="width:100%;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:16px">code</span>
+            Exportar coordenadas JS
+          </button>
+          <button class="btn btn-secondary" onclick="guardarLocal()" style="width:100%;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:16px">save</span>
+            Guardar en este dispositivo
+          </button>
+          <button class="btn btn-secondary" onclick="resetConfig()" style="width:100%;justify-content:center;color:var(--text-2)">
+            <span class="material-symbols-outlined" style="font-size:16px">restart_alt</span>
+            Restablecer valores por defecto
+          </button>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- Modal exportar -->
+  <div id="export-modal">
+    <div class="modal-box">
+      <h3>
+        <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">code</span>
+        Coordenadas exportadas
+      </h3>
+      <p style="font-size:0.82rem;color:var(--text-2);margin:0">
+        Copia el bloque de coordenadas y pégalo en <code>js/planets-data.js</code> para actualizar el sitio.
+      </p>
+      <textarea class="modal-textarea" id="export-textarea" readonly></textarea>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('export-modal').classList.remove('open')">Cerrar</button>
+        <button class="btn btn-primary" onclick="copiarExport()">
+          <span class="material-symbols-outlined" style="font-size:16px">content_copy</span>
+          Copiar todo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/planets-data.js"></script>
+  <script>
+  (function () {
+    // ── Estado ──────────────────────────────────────────────────────
+    const DEFAULT_SUN = { lat: -41.143448, lng: -73.024236 };
+    const SUN_REAL_DIAMETER_M = 1391000 * 1000;
+
+    let state = {
+      sunCoords: null,
+      sunDiameterCm: 35,
+      bearingDeg: 129.20,
+      locked: {} // id → true si el pin fue movido manualmente
+    };
+
+    // Cargar estado guardado
+    try {
+      const saved = localStorage.getItem('paseoSolarConfig');
+      if (saved) Object.assign(state, JSON.parse(saved));
+    } catch (_) {}
+
+    // ── Mapa ─────────────────────────────────────────────────────────
+    const map = L.map('mapa-config', {
+      center: state.sunCoords || DEFAULT_SUN,
+      zoom: 16,
+      zoomControl: true,
+      attributionControl: true
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO',
+      subdomains: 'abcd', maxZoom: 21
+    }).addTo(map);
+
+    // ── Marcadores ───────────────────────────────────────────────────
+    let sunMarker = null;
+    let planetMarkers = {};
+    let costaneraLine = null;
+
+    function makeSunIcon() {
+      return L.divIcon({
+        html: `<div style="
+          width:24px;height:24px;
+          background:radial-gradient(circle at 40% 35%,#fffacc,#fdb813 50%,#e06000);
+          border-radius:50%;
+          box-shadow:0 0 16px #fdb813, 0 0 32px rgba(253,184,19,0.5);
+          border:2px solid rgba(255,255,200,0.6);
+        "></div>`,
+        className: '',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -14]
+      });
+    }
+
+    function makePlanetIcon(planeta, isLocked) {
+      const size = Math.max(8, Math.min(20, 8 + (planeta.diametroReal / 139820) * 12));
+      return L.divIcon({
+        html: `<div style="
+          width:${size}px;height:${size}px;
+          background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.4),${planeta.color});
+          border-radius:50%;
+          box-shadow:0 0 6px ${planeta.color};
+          border:${isLocked ? '2px solid rgba(253,184,19,0.8)' : '1px solid rgba(255,255,255,0.3)'};
+          position:relative;
+        ">${isLocked ? `<div style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:var(--accent,#fdb813);border-radius:50%"></div>` : ''}</div>`,
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2],
+        popupAnchor: [0, -size/2 - 4]
+      });
+    }
+
+    function getScale() {
+      return (state.sunDiameterCm / 100) / SUN_REAL_DIAMETER_M;
+    }
+
+    function getPlanetModelDistM(planeta) {
+      if (planeta.id === 'sol') return 0;
+      return planeta.distanciaRealSol * 1e9 * getScale();
+    }
+
+    function getPlanetModelDiamCm(planeta) {
+      return planeta.diametroReal * 1000 * getScale() * 100;
+    }
+
+    function haversinePoint(from, distM, bearing) {
+      const R = 6371000;
+      const lat1 = from.lat * Math.PI / 180;
+      const lon1 = from.lng * Math.PI / 180;
+      const d = distM / R;
+      const theta = bearing * Math.PI / 180;
+      const lat2 = Math.asin(Math.sin(lat1)*Math.cos(d) + Math.cos(lat1)*Math.sin(d)*Math.cos(theta));
+      const lon2 = lon1 + Math.atan2(Math.sin(theta)*Math.sin(d)*Math.cos(lat1), Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
+      return { lat: lat2*180/Math.PI, lng: (lon2*180/Math.PI+540)%360-180 };
+    }
+
+    function calcPlanetCoords(planeta) {
+      if (!state.sunCoords) return null;
+      if (planeta.id === 'sol') return state.sunCoords;
+      if (state.locked[planeta.id] && state.locked[planeta.id] !== true) {
+        return state.locked[planeta.id]; // guardado como coords
+      }
+      const distM = getPlanetModelDistM(planeta);
+      return haversinePoint(state.sunCoords, distM, state.bearingDeg);
+    }
+
+    function renderAll() {
+      if (!state.sunCoords) return;
+      updateSunMarker();
+      updatePlanetMarkers();
+      updateLine();
+      updatePanel();
+    }
+
+    function updateSunMarker() {
+      if (sunMarker) {
+        sunMarker.setLatLng(state.sunCoords);
+      } else {
+        sunMarker = L.marker(state.sunCoords, {
+          icon: makeSunIcon(),
+          draggable: true,
+          zIndexOffset: 1000
+        }).addTo(map);
+        sunMarker.bindPopup(`<div style="padding:0.5rem">
+          <strong style="color:#fdb813">☉ El Sol</strong><br>
+          <span style="font-size:0.75rem;color:#aaa">⌀ modelo: ${state.sunDiameterCm} cm</span>
+        </div>`);
+        sunMarker.on('dragend', (e) => {
+          state.sunCoords = e.target.getLatLng();
+          // Regenerar planetas no bloqueados
+          Object.keys(planetMarkers).forEach(id => {
+            if (!state.locked[id] || state.locked[id] === true) {
+              const p = SISTEMA_SOLAR[id];
+              const c = calcPlanetCoords(p);
+              if (c) planetMarkers[id].setLatLng(c);
+            }
+          });
+          updateLine();
+          updatePanel();
+          showInstruction(false);
+        });
+      }
+    }
+
+    function updatePlanetMarkers() {
+      ORDEN_PLANETAS.forEach(id => {
+        if (id === 'sol') return;
+        const planeta = SISTEMA_SOLAR[id];
+        const coords = calcPlanetCoords(planeta);
+        if (!coords) return;
+        const isLocked = state.locked[id] && state.locked[id] !== true;
+
+        if (planetMarkers[id]) {
+          if (!isLocked) planetMarkers[id].setLatLng(coords);
+          planetMarkers[id].setIcon(makePlanetIcon(planeta, !!state.locked[id]));
+        } else {
+          const marker = L.marker(coords, {
+            icon: makePlanetIcon(planeta, false),
+            draggable: true
+          }).addTo(map);
+
+          const distM = getPlanetModelDistM(planeta);
+          const diamCm = getPlanetModelDiamCm(planeta);
+          marker.bindPopup(`<div style="padding:0.5rem;min-width:140px">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem">
+              <div style="width:10px;height:10px;border-radius:50%;background:${planeta.color};flex-shrink:0"></div>
+              <strong>${planeta.nombre}</strong>
+            </div>
+            <div style="font-size:0.75rem;color:#aaa">⌀ modelo: ${diamCm < 1 ? (diamCm*10).toFixed(2)+' mm' : diamCm.toFixed(3)+' cm'}</div>
+            <div style="font-size:0.75rem;color:#aaa">Dist. al Sol: ${distM < 1000 ? distM.toFixed(1)+' m' : (distM/1000).toFixed(2)+' km'}</div>
+            <a href="planet.html?planet=${id}" style="display:inline-block;margin-top:0.5rem;font-size:0.75rem;color:#fdb813">Ver ficha →</a>
+          </div>`);
+
+          marker.on('dragend', (e) => {
+            state.locked[id] = e.target.getLatLng(); // guardar coords manuales
+            marker.setIcon(makePlanetIcon(planeta, true));
+            updatePanel();
+          });
+
+          planetMarkers[id] = marker;
+        }
+      });
+    }
+
+    function updateLine() {
+      if (!state.sunCoords) return;
+      const pts = ORDEN_PLANETAS.map(id => {
+        const p = SISTEMA_SOLAR[id];
+        const c = calcPlanetCoords(p);
+        return c ? [c.lat, c.lng] : null;
+      }).filter(Boolean);
+
+      if (costaneraLine) {
+        costaneraLine.setLatLngs(pts);
+      } else {
+        costaneraLine = L.polyline(pts, {
+          color: 'rgba(253,184,19,0.2)',
+          weight: 1.5,
+          dashArray: '5 4'
+        }).addTo(map);
+      }
+    }
+
+    function updatePanel() {
+      // Coords del Sol
+      if (state.sunCoords) {
+        document.getElementById('sun-lat').textContent = state.sunCoords.lat.toFixed(6);
+        document.getElementById('sun-lng').textContent = state.sunCoords.lng.toFixed(6);
+        showInstruction(false);
+      }
+
+      // Escala
+      const scale = getScale();
+      const scaleRatio = Math.round(1 / scale).toLocaleString('es-CL');
+      document.getElementById('scale-display').textContent = `Escala 1:${scaleRatio}`;
+
+      // Distancia Neptuno
+      const neptDistM = getPlanetModelDistM(SISTEMA_SOLAR.neptuno);
+      document.getElementById('neptune-dist').textContent =
+        neptDistM < 1000 ? neptDistM.toFixed(1) + ' m' : (neptDistM/1000).toFixed(2) + ' km';
+
+      // Bearing needle
+      const needle = document.getElementById('bearing-needle');
+      if (needle) needle.style.transform = `translateX(-50%) rotate(${state.bearingDeg}deg)`;
+
+      // Lista de planetas
+      const list = document.getElementById('planet-config-list');
+      list.innerHTML = '';
+      ORDEN_PLANETAS.forEach(id => {
+        const planeta = SISTEMA_SOLAR[id];
+        const coords = calcPlanetCoords(planeta);
+        const distM = getPlanetModelDistM(planeta);
+        const isLocked = state.locked[id] && state.locked[id] !== true;
+
+        const item = document.createElement('div');
+        item.className = 'planet-config-item';
+        item.innerHTML = `
+          <div class="planet-dot" style="background:${planeta.color}"></div>
+          <div class="planet-config-info">
+            <div class="planet-config-name">${planeta.nombre}</div>
+            <div class="planet-config-dist">${id === 'sol' ? 'Centro' : (distM < 1000 ? distM.toFixed(1)+' m' : (distM/1000).toFixed(2)+' km')}</div>
+            ${coords ? `<div class="planet-config-coords">${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}</div>` : ''}
+          </div>
+          <div class="planet-config-lock ${isLocked ? 'locked' : ''}" title="${isLocked ? 'Pin fijado manualmente. Clic para liberar' : 'Pin calculado automáticamente'}"
+            data-id="${id}">
+            <span class="material-symbols-outlined" style="font-size:14px">${isLocked ? 'lock' : 'lock_open'}</span>
+          </div>
+        `;
+
+        // Centrar mapa en planeta al hacer clic
+        item.addEventListener('click', (e) => {
+          if (e.target.closest('.planet-config-lock')) return;
+          if (coords) {
+            map.setView([coords.lat, coords.lng], 17, { animate: true });
+            if (id === 'sol' && sunMarker) sunMarker.openPopup();
+            else if (planetMarkers[id]) planetMarkers[id].openPopup();
+          }
+        });
+
+        // Toggle lock
+        item.querySelector('.planet-config-lock').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (isLocked) {
+            delete state.locked[id]; // liberar
+          } else {
+            state.locked[id] = true; // marcar como locked pero sin coords propias
+          }
+          renderAll();
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    function showInstruction(show) {
+      const el = document.getElementById('map-instruction');
+      el.style.display = show ? 'block' : 'none';
+    }
+
+    // ── Interacciones del mapa ────────────────────────────────────────
+    map.on('click', (e) => {
+      if (!state.sunCoords) {
+        state.sunCoords = e.latlng;
+        renderAll();
+      }
+    });
+
+    // ── Inputs ────────────────────────────────────────────────────────
+    document.getElementById('sun-diameter').addEventListener('input', function() {
+      const v = parseFloat(this.value);
+      if (v > 0) {
+        state.sunDiameterCm = v;
+        // Recalcular planetas no bloqueados
+        if (state.sunCoords) {
+          ORDEN_PLANETAS.forEach(id => {
+            if (id === 'sol' || (state.locked[id] && state.locked[id] !== true)) return;
+            const p = SISTEMA_SOLAR[id];
+            const c = calcPlanetCoords(p);
+            if (c && planetMarkers[id]) planetMarkers[id].setLatLng(c);
+          });
+          updateLine();
+        }
+        updatePanel();
+      }
+    });
+
+    document.getElementById('bearing-input').addEventListener('input', function() {
+      const v = parseFloat(this.value);
+      if (!isNaN(v)) {
+        state.bearingDeg = ((v % 360) + 360) % 360;
+        if (state.sunCoords) {
+          ORDEN_PLANETAS.forEach(id => {
+            if (id === 'sol' || (state.locked[id] && state.locked[id] !== true)) return;
+            const p = SISTEMA_SOLAR[id];
+            const c = calcPlanetCoords(p);
+            if (c && planetMarkers[id]) planetMarkers[id].setLatLng(c);
+          });
+          updateLine();
+        }
+        updatePanel();
+      }
+    });
+
+    // ── Acciones ──────────────────────────────────────────────────────
+    window.copiarCoords = function() {
+      if (!state.sunCoords) return;
+      const txt = `${state.sunCoords.lat.toFixed(6)}, ${state.sunCoords.lng.toFixed(6)}`;
+      navigator.clipboard.writeText(txt).then(() => {
+        document.getElementById('sun-coords-display').style.borderColor = 'var(--accent)';
+        setTimeout(() => document.getElementById('sun-coords-display').style.borderColor = '', 1000);
+      });
+    };
+
+    window.guardarLocal = function() {
+      // Serializar coords de planetas
+      const serialized = { ...state };
+      if (state.sunCoords) {
+        serialized.sunCoords = { lat: state.sunCoords.lat, lng: state.sunCoords.lng };
+      }
+      const lockedCoords = {};
+      Object.keys(state.locked).forEach(id => {
+        const v = state.locked[id];
+        if (v && v !== true && v.lat) lockedCoords[id] = { lat: v.lat, lng: v.lng };
+        else if (v === true) lockedCoords[id] = true;
+      });
+      serialized.locked = lockedCoords;
+      localStorage.setItem('paseoSolarConfig', JSON.stringify(serialized));
+      const btn = document.querySelector('[onclick="guardarLocal()"]');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">check</span> Guardado';
+      setTimeout(() => btn.innerHTML = orig, 2000);
+    };
+
+    window.resetConfig = function() {
+      if (!confirm('¿Restablecer a los valores por defecto? Se perderá la configuración actual.')) return;
+      localStorage.removeItem('paseoSolarConfig');
+      state = { sunCoords: DEFAULT_SUN, sunDiameterCm: 35, bearingDeg: 129.20, locked: {} };
+      document.getElementById('sun-diameter').value = 35;
+      document.getElementById('bearing-input').value = 129.2;
+      // Limpiar marcadores
+      if (sunMarker) { map.removeLayer(sunMarker); sunMarker = null; }
+      Object.values(planetMarkers).forEach(m => map.removeLayer(m));
+      planetMarkers = {};
+      if (costaneraLine) { map.removeLayer(costaneraLine); costaneraLine = null; }
+      renderAll();
+    };
+
+    window.exportarConfig = function() {
+      if (!state.sunCoords) {
+        alert('Primero coloca el Sol en el mapa.');
+        return;
+      }
+      const lines = ['// Coordenadas exportadas desde configurar.html'];
+      lines.push(`// Escala: ${Math.round(1/getScale()).toLocaleString('es-CL')} · Sol: ${state.sunDiameterCm} cm · Rumbo: ${state.bearingDeg}°`);
+      lines.push(`const SOL_COORDS = { lat: ${state.sunCoords.lat.toFixed(6)}, lng: ${state.sunCoords.lng.toFixed(6)} };`);
+      lines.push(`const RUMBO_COSTANERA = ${state.bearingDeg};`);
+      lines.push('');
+      lines.push('// Pegar en SISTEMA_SOLAR dentro de planets-data.js:');
+      ORDEN_PLANETAS.forEach(id => {
+        const p = SISTEMA_SOLAR[id];
+        const coords = calcPlanetCoords(p);
+        if (!coords) return;
+        const distM = getPlanetModelDistM(p);
+        const diamCm = getPlanetModelDiamCm(p);
+        lines.push(`// ${p.nombre} — ${id === 'sol' ? 'Centro' : (distM < 1000 ? distM.toFixed(2)+' m' : (distM/1000).toFixed(3)+' km')}`);
+        lines.push(`${id}: { coords: { lat: ${coords.lat.toFixed(6)}, lng: ${coords.lng.toFixed(6)} }, diametroModelo: ${id === 'sol' ? state.sunDiameterCm : parseFloat(diamCm.toFixed(4))}, distanciaModeloSol: ${id === 'sol' ? 0 : parseFloat(distM.toFixed(2))} },`);
+      });
+      document.getElementById('export-textarea').value = lines.join('\n');
+      document.getElementById('export-modal').classList.add('open');
+    };
+
+    window.copiarExport = function() {
+      const ta = document.getElementById('export-textarea');
+      ta.select();
+      navigator.clipboard.writeText(ta.value).then(() => {
+        const btn = document.querySelector('[onclick="copiarExport()"]');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px">check</span> Copiado';
+        setTimeout(() => btn.innerHTML = orig, 1500);
+      });
+    };
+
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') document.getElementById('export-modal').classList.remove('open');
+    });
+
+    // ── Inicialización ────────────────────────────────────────────────
+    document.getElementById('bearing-input').value = state.bearingDeg;
+    document.getElementById('sun-diameter').value = state.sunDiameterCm;
+
+    if (state.sunCoords) {
+      renderAll();
+      showInstruction(false);
+    } else {
+      showInstruction(true);
+      updatePanel(); // solo actualiza escala/panel sin marcadores
+    }
+
+  })();
+  </script>
+</body>
+</html>
