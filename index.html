@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Modelo a escala 1:3.977.140.000 del sistema solar en la costanera de Frutillar. El Sol mide 35 cm; Neptuno está a 1.132 m." />
+  <meta name="description" content="Modelo a escala 1:3.093.330.000 del sistema solar en la costanera de Frutillar. El Sol mide 45 cm; Neptuno está a 1.456 m." />
   <title>Paseo Solar Frutillar</title>
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -13,10 +13,10 @@
   <header class="site-header">
     <div class="container">
       <a href="index.html" class="site-logo">
-        <div class="sol-icon"></div>
+        <div class="sol-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg/1024px-The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg" alt="Sol" /></div>
         <div class="site-logo-text">
           <strong>Paseo Solar Frutillar</strong>
-          <span>Escala 1:3.977.140.000</span>
+          <span>Escala 1:3.093.330.000</span>
         </div>
       </a>
       <nav class="site-nav">
@@ -38,10 +38,10 @@
       <div class="container">
         <div class="chip">
           <span class="material-symbols-outlined" style="font-size:14px">location_on</span>
-          Costanera de Frutillar, Chile · 1,1 km de recorrido
+          Costanera de Frutillar, Chile · 1,5 km de recorrido
         </div>
         <h1>El Sistema Solar<br>en la Costanera</h1>
-        <p>Camina por el sistema solar a escala real. El Sol mide 35 cm y Neptuno está a 1.132 metros hacia el este.</p>
+        <p>Camina por el sistema solar a escala real. El Sol mide 45 cm y Neptuno está a 1.456 metros hacia el sureste.</p>
       </div>
     </section>
 
@@ -74,40 +74,157 @@
       <section id="escala" style="margin-bottom:3rem">
         <div class="escala-info">
           <h2>La escala del modelo</h2>
-          <p>Escala 1:3.977.140.000 — todo el sistema solar cabe en un paseo de poco más de un kilómetro.</p>
+          <p>Escala 1:3.093.330.000 — todo el sistema solar cabe en 1,5 km de costanera.</p>
 
           <div class="escala-grid">
             <div class="escala-item">
-              <span class="escala-item-valor">35 cm</span>
+              <span class="escala-item-valor">45 cm</span>
               <span class="escala-item-label">Sol (modelo)</span>
             </div>
             <div class="escala-item">
-              <span class="escala-item-valor">1.391.000 km</span>
+              <span class="escala-item-valor">1.392.000 km</span>
               <span class="escala-item-label">Sol (real)</span>
             </div>
             <div class="escala-item">
-              <span class="escala-item-valor">3,2 mm</span>
+              <span class="escala-item-valor">4,1 mm</span>
               <span class="escala-item-label">Tierra (modelo)</span>
             </div>
             <div class="escala-item">
-              <span class="escala-item-valor">37,6 m</span>
+              <span class="escala-item-valor">48,4 m</span>
               <span class="escala-item-label">Tierra al Sol</span>
             </div>
             <div class="escala-item">
-              <span class="escala-item-valor">1.132 m</span>
+              <span class="escala-item-valor">1.456 m</span>
               <span class="escala-item-label">Neptuno al Sol</span>
             </div>
             <div class="escala-item">
-              <span class="escala-item-valor">4.495 M km</span>
-              <span class="escala-item-label">Neptuno (real)</span>
+              <span class="escala-item-valor">13.430 km</span>
+              <span class="escala-item-label">Próxima Centauri</span>
             </div>
           </div>
 
-          <div style="background:var(--surface-2);border-radius:8px;padding:1rem;font-size:0.85rem;color:var(--text-2);line-height:1.6">
-            Si redujeras la Tierra al tamaño de una canica (1,3 cm), la Luna estaría a 38 cm. En este modelo, la Tierra es un grano de pimienta de 3,2 mm. El espacio es casi todo vacío.
+          <!-- Animated comparisons ticker -->
+          <div style="background:var(--surface-2);border-radius:8px;padding:1rem;margin-bottom:1rem;min-height:72px;display:flex;flex-direction:column;gap:0.25rem;justify-content:center">
+            <div style="font-size:0.7rem;color:var(--text-2);text-transform:uppercase;letter-spacing:0.08em" id="ticker-categoria">Diámetros en el modelo</div>
+            <div style="display:flex;align-items:baseline;gap:0.625rem;flex-wrap:wrap">
+              <span id="ticker-valor" style="font-size:1.5rem;font-weight:700;color:var(--accent);transition:opacity 0.4s"></span>
+              <span id="ticker-label" style="font-size:0.875rem;color:var(--text-2);transition:opacity 0.4s"></span>
+            </div>
+          </div>
+
+          <!-- Real-time distances from Earth -->
+          <div>
+            <div class="section-title" style="margin-bottom:0.625rem">
+              <span class="material-symbols-outlined" style="font-size:16px">satellite_alt</span>
+              Distancias desde la Tierra — ahora mismo
+              <span id="dist-timestamp" style="margin-left:auto;font-size:0.7rem;color:var(--text-2);font-weight:400"></span>
+            </div>
+            <div id="dist-ahora-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.5rem"></div>
+          </div>
+
+          <div style="background:var(--surface-2);border-radius:8px;padding:1rem;font-size:0.85rem;color:var(--text-2);line-height:1.6;margin-top:1rem">
+            Si redujeras la Tierra al tamaño de una canica (1,3 cm), la Luna estaría a 38 cm. En este modelo, la Tierra es una bolita de 4,1 mm. Próxima Centauri estaría a 13.430 km — la distancia de Chile a Noruega.
           </div>
         </div>
       </section>
+
+      <script>
+      // ── Animated ticker ──────────────────────────────────────────────────
+      (function() {
+        const items = [
+          { cat: 'Diámetros en el modelo', val: '45 cm',     lbl: '⌀ Sol' },
+          { cat: 'Diámetros en el modelo', val: '4,52 cm',   lbl: '⌀ Júpiter' },
+          { cat: 'Diámetros en el modelo', val: '3,77 cm',   lbl: '⌀ Saturno' },
+          { cat: 'Diámetros en el modelo', val: '1,64 cm',   lbl: '⌀ Urano' },
+          { cat: 'Diámetros en el modelo', val: '1,59 cm',   lbl: '⌀ Neptuno' },
+          { cat: 'Diámetros en el modelo', val: '4,1 mm',    lbl: '⌀ Tierra' },
+          { cat: 'Diámetros en el modelo', val: '3,9 mm',    lbl: '⌀ Venus' },
+          { cat: 'Diámetros en el modelo', val: '2,2 mm',    lbl: '⌀ Marte' },
+          { cat: 'Diámetros en el modelo', val: '1,6 mm',    lbl: '⌀ Mercurio' },
+          { cat: 'Lunas — distancia al planeta', val: '60,9 cm',  lbl: 'Júpiter → Calisto' },
+          { cat: 'Lunas — distancia al planeta', val: '39,5 cm',  lbl: 'Saturno → Titán' },
+          { cat: 'Lunas — distancia al planeta', val: '34,6 cm',  lbl: 'Júpiter → Ganímedes' },
+          { cat: 'Lunas — distancia al planeta', val: '21,7 cm',  lbl: 'Júpiter → Europa' },
+          { cat: 'Lunas — distancia al planeta', val: '18,9 cm',  lbl: 'Urano → Oberón' },
+          { cat: 'Lunas — distancia al planeta', val: '14,1 cm',  lbl: 'Urano → Titania' },
+          { cat: 'Lunas — distancia al planeta', val: '13,6 cm',  lbl: 'Júpiter → Ío' },
+          { cat: 'Lunas — distancia al planeta', val: '12,4 cm',  lbl: 'Tierra → Luna' },
+          { cat: 'Lunas — distancia al planeta', val: '11,5 cm',  lbl: 'Neptuno → Tritón' },
+          { cat: 'Estrellas', val: '13.430 km',       lbl: 'Próxima Centauri · Chile → Noruega' },
+          { cat: 'Galaxias',  val: '75.940.000 km',   lbl: 'Centro de la Vía Láctea' },
+        ];
+        let idx = 0;
+        const vEl = document.getElementById('ticker-valor');
+        const lEl = document.getElementById('ticker-label');
+        const cEl = document.getElementById('ticker-categoria');
+        function show(i) {
+          const item = items[i % items.length];
+          vEl.style.opacity = lEl.style.opacity = '0';
+          setTimeout(() => {
+            cEl.textContent = item.cat;
+            vEl.textContent = item.val;
+            lEl.textContent = item.lbl;
+            vEl.style.opacity = lEl.style.opacity = '1';
+          }, 400);
+        }
+        show(0);
+        setInterval(() => show(++idx), 3500);
+      })();
+
+      // ── Real-time Earth→planet distances (simplified circular orbits) ────
+      (function() {
+        const ORBITS = {
+          mercurio: { a: 0.387098, T: 87.969,    L0: 252.250906, color: '#b5b5b5', nombre: 'Mercurio' },
+          venus:    { a: 0.723332, T: 224.701,   L0: 181.979801, color: '#e8cda0', nombre: 'Venus'    },
+          marte:    { a: 1.523688, T: 686.971,   L0: 355.433275, color: '#c1440e', nombre: 'Marte'    },
+          jupiter:  { a: 5.202534, T: 4332.589,  L0: 34.396441,  color: '#c88b3a', nombre: 'Júpiter'  },
+          saturno:  { a: 9.536764, T: 10759.22,  L0: 49.944432,  color: '#e4d191', nombre: 'Saturno'  },
+          urano:    { a: 19.18916, T: 30685.4,   L0: 313.232810, color: '#7de8e8', nombre: 'Urano'    },
+          neptuno:  { a: 30.06992, T: 60189.0,   L0: 304.880476, color: '#4b70dd', nombre: 'Neptuno'  },
+        };
+        const TIERRA = { a: 1.000000, T: 365.256, L0: 100.464441 };
+        const AU_KM  = 149597870;
+        const ESCALA_N = 3093330000;
+
+        function compute() {
+          const J2000 = Date.UTC(2000, 0, 1, 12);
+          const days  = (Date.now() - J2000) / 86400000;
+          const eL = ((TIERRA.L0 + 360 * days / TIERRA.T) % 360) * Math.PI / 180;
+          const ex = TIERRA.a * Math.cos(eL), ey = TIERRA.a * Math.sin(eL);
+
+          const grid = document.getElementById('dist-ahora-grid');
+          grid.innerHTML = '';
+          for (const [id, o] of Object.entries(ORBITS)) {
+            const L   = ((o.L0 + 360 * days / o.T) % 360) * Math.PI / 180;
+            const dx  = o.a * Math.cos(L) - ex;
+            const dy  = o.a * Math.sin(L) - ey;
+            const au  = Math.sqrt(dx*dx + dy*dy);
+            const km  = au * AU_KM;
+            const mod = km * 1000 / ESCALA_N;
+            const modStr = mod < 1    ? (mod * 100).toFixed(1) + ' cm'  :
+                           mod < 1000 ? mod.toFixed(0)          + ' m'   :
+                                        (mod / 1000).toFixed(1) + ' km';
+            const kmStr  = km >= 1e9  ? (km/1e9).toFixed(2)  + ' G km' :
+                           km >= 1e6  ? (km/1e6).toFixed(0)   + ' M km' :
+                                        (km/1e3).toFixed(0)   + ' k km';
+            grid.innerHTML += `
+              <div style="background:var(--surface-2);border-radius:8px;padding:0.625rem 0.75rem">
+                <div style="display:flex;align-items:center;gap:0.375rem;margin-bottom:0.25rem">
+                  <span style="width:7px;height:7px;border-radius:50%;background:${o.color};flex-shrink:0"></span>
+                  <span style="font-size:0.78rem;font-weight:600">${o.nombre}</span>
+                </div>
+                <div style="font-size:1rem;font-weight:700;color:var(--accent)">${modStr}</div>
+                <div style="font-size:0.68rem;color:var(--text-2)">${kmStr} · ${au.toFixed(2)} UA</div>
+              </div>`;
+          }
+          const now = new Date();
+          document.getElementById('dist-timestamp').textContent =
+            now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+        }
+        compute();
+        setInterval(compute, 60000);
+      })();
+      </script>
 
       <!-- Cómo usar -->
       <section style="margin-bottom:3rem">

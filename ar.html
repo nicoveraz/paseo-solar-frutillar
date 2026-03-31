@@ -179,6 +179,7 @@
         <div id="hud-name"></div>
       </div>
       <div id="hud-sub"></div>
+      <div id="hud-dist-real" style="font-size:0.72rem;color:var(--accent);margin-bottom:0.5rem;opacity:0.85"></div>
       <div class="hud-row-2">
         <a id="hud-btn-prev" href="#" class="hud-btn-nav" style="display:none">
           <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
@@ -234,7 +235,45 @@
       hName.textContent = planeta.nombre;
       hSub.textContent  = planeta.id !== 'sol'
         ? `⌀ ${planeta.diametroReal.toLocaleString('es-CL')} km · ${planeta.distanciaModeloSol.toFixed(1)} m del Sol`
-        : `⌀ 1.391.000 km · Centro del sistema`;
+        : `⌀ 1.392.000 km · Centro del sistema`;
+
+      // Real-time Earth→planet distance
+      const ORBITS_AR = {
+        sol:      { a: 0,        T: 1,         L0: 0            },
+        mercurio: { a: 0.387098, T: 87.969,    L0: 252.250906   },
+        venus:    { a: 0.723332, T: 224.701,   L0: 181.979801   },
+        marte:    { a: 1.523688, T: 686.971,   L0: 355.433275   },
+        jupiter:  { a: 5.202534, T: 4332.589,  L0: 34.396441    },
+        saturno:  { a: 9.536764, T: 10759.22,  L0: 49.944432    },
+        urano:    { a: 19.18916, T: 30685.4,   L0: 313.232810   },
+        neptuno:  { a: 30.06992, T: 60189.0,   L0: 304.880476   },
+      };
+      const TIERRA_AR = { a: 1.000000, T: 365.256, L0: 100.464441 };
+      const hDistReal = document.getElementById('hud-dist-real');
+      function updateRealDist() {
+        const J2000 = Date.UTC(2000, 0, 1, 12);
+        const days  = (Date.now() - J2000) / 86400000;
+        const eL = ((TIERRA_AR.L0 + 360 * days / TIERRA_AR.T) % 360) * Math.PI / 180;
+        const ex = TIERRA_AR.a * Math.cos(eL), ey = TIERRA_AR.a * Math.sin(eL);
+        let au;
+        if (planeta.id === 'sol') {
+          au = Math.sqrt(ex*ex + ey*ey);
+        } else {
+          const o = ORBITS_AR[planeta.id];
+          if (!o) return;
+          const L  = ((o.L0 + 360 * days / o.T) % 360) * Math.PI / 180;
+          const dx = o.a * Math.cos(L) - ex;
+          const dy = o.a * Math.sin(L) - ey;
+          au = Math.sqrt(dx*dx + dy*dy);
+        }
+        const km = au * 149597870;
+        const kmStr = km >= 1e9 ? (km/1e9).toFixed(2) + ' G km' :
+                      km >= 1e6 ? (km/1e6).toFixed(0) + ' M km' :
+                                  (km/1e3).toFixed(0) + ' k km';
+        hDistReal.textContent = `📡 Desde la Tierra ahora: ${kmStr} (${au.toFixed(2)} UA)`;
+      }
+      updateRealDist();
+      setInterval(updateRealDist, 60000);
 
       document.getElementById('hud-btn-info').href = `planet.html?planet=${planetaId}`;
 

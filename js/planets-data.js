@@ -1,9 +1,9 @@
 'use strict';
 
-// Escala: 1:3,977,140,000
-// El Sol (diámetro 35 cm) está en el centro de la costanera de Frutillar
-const ESCALA = 1 / 3977140000;
-const SOL_COORDS = { lat: -41.143448, lng: -73.024236 };
+// Escala: 1:3,093,330,000
+// El Sol (diámetro 45 cm) está en el centro de la costanera de Frutillar
+const ESCALA = 1 / 3093330000;
+const SOL_COORDS = { lat: -41.129990, lng: -73.027325 };
 const RUMBO_COSTANERA = 129.20; // grados — bearing real del Paseo Costanera Frutillar (sureste)
 
 // Calcula coordenadas GPS a partir de una distancia en metros y un rumbo
@@ -37,11 +37,11 @@ const SISTEMA_SOLAR = {
     tipo: 'estrella',
     color: '#fdb813',
     colorSecundario: '#ff6b00',
-    imagen: 'https://science.nasa.gov/wp-content/uploads/2023/09/sun.jpg',
-    imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia15162-mercury-basins-messenger-16x9-1.jpg',
+    imagen: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg/1024px-The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg',
+    imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2023/09/sun.jpg',
     imagenCredito: 'NASA/SDO',
-    diametroReal: 1391000,
-    diametroModelo: 35,
+    diametroReal: 1392000,
+    diametroModelo: 45,
     distanciaRealSol: 0,
     distanciaModeloSol: 0,
     lunas: [],
@@ -69,11 +69,11 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA15162.jpg',
     imagenCredito: 'NASA/MESSENGER',
     diametroReal: 4879,
-    diametroModelo: 0.1227,
+    diametroModelo: 0.1577,
     distanciaRealSol: 57.9,
-    distanciaModeloSol: 14.56,
+    distanciaModeloSol: 18.72,
     lunas: [],
-    descripcion: 'Mercurio es el planeta más pequeño del sistema solar y el más cercano al Sol. Con un diámetro de apenas 4.879 km, es incluso más pequeño que algunas lunas planetarias. Su superficie, densamente cubierta de cráteres, se asemeja a la de nuestra Luna. Sin atmósfera significativa que retenga el calor, las temperaturas oscilan entre -180 °C en la sombra y 430 °C en el lado iluminado. Un año mercuriano dura solo 88 días terrestres, pero un día solar en Mercurio dura 176 días. En este modelo a escala, Mercurio sería una bolita de apenas 1,2 mm de diámetro, colocada a 14,56 metros del Sol.',
+    descripcion: 'Mercurio es el planeta más pequeño del sistema solar y el más cercano al Sol. Con un diámetro de apenas 4.879 km, es incluso más pequeño que algunas lunas planetarias. Su superficie, densamente cubierta de cráteres, se asemeja a la de nuestra Luna. Sin atmósfera significativa que retenga el calor, las temperaturas oscilan entre -180 °C en la sombra y 430 °C en el lado iluminado. Un año mercuriano dura solo 88 días terrestres, pero un día solar en Mercurio dura 176 días. En este modelo a escala, Mercurio sería una bolita de apenas 1,6 mm de diámetro, colocada a 18,72 metros del Sol.',
     datosClave: [
       { label: 'Período orbital', valor: '88 días terrestres' },
       { label: 'Temperatura máxima', valor: '430 °C' },
@@ -82,7 +82,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '0' },
       { label: 'Distancia al Sol', valor: '57,9 millones de km' }
     ],
-    coords: { lat: -41.143531, lng: -73.024101 }
+    coords: { lat: -41.130096, lng: -73.027152 }
   },
 
   venus: {
@@ -96,10 +96,10 @@ const SISTEMA_SOLAR = {
     imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/venus-mariner-10-pia23791-fig2-16x9-1.jpg',
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA00271.jpg',
     imagenCredito: 'NASA/Mariner 10',
-    diametroReal: 12104,
-    diametroModelo: 0.3042,
+    diametroReal: 12100,
+    diametroModelo: 0.3912,
     distanciaRealSol: 108.2,
-    distanciaModeloSol: 27.21,
+    distanciaModeloSol: 34.98,
     lunas: [],
     descripcion: 'Venus es a menudo llamado el "planeta gemelo" de la Tierra por su tamaño similar, pero en realidad es un mundo radicalmente diferente. Su densa atmósfera de dióxido de carbono crea un efecto invernadero tan extremo que la temperatura superficial supera los 465 °C, más caliente que Mercurio a pesar de estar más lejos del Sol. Venus gira en dirección opuesta a la mayoría de los planetas (rotación retrógrada), y un día venusiano dura más que su propio año. La presión atmosférica en su superficie es 90 veces mayor que en la Tierra, equivalente a estar a 900 metros de profundidad en el océano.',
     datosClave: [
@@ -110,7 +110,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '0' },
       { label: 'Distancia al Sol', valor: '108,2 millones de km' }
     ],
-    coords: { lat: -41.143603, lng: -73.023984 }
+    coords: { lat: -41.130188, lng: -73.027001 }
   },
 
   tierra: {
@@ -125,20 +125,20 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/globe_east_2048.jpg',
     imagenCredito: 'NASA/Apollo 17',
     diametroReal: 12742,
-    diametroModelo: 0.3203,
+    diametroModelo: 0.4119,
     distanciaRealSol: 149.6,
-    distanciaModeloSol: 37.61,
+    distanciaModeloSol: 48.36,
     lunas: [
       {
         nombre: 'Luna',
         diametroReal: 3474,
-        diametroModelo: 0.0874,
+        diametroModelo: 0.1123,
         distanciaReal: 384400,
-        distanciaModelo: 9.66,
+        distanciaModelo: 12.43,
         descripcion: 'La Luna es el único satélite natural de la Tierra y el quinto mayor del sistema solar. Su influencia gravitacional genera las mareas de los océanos y estabiliza la inclinación del eje terrestre, lo que tiene un efecto estabilizador en el clima de la Tierra a lo largo del tiempo geológico.'
       }
     ],
-    descripcion: 'La Tierra es nuestro hogar y el único planeta conocido que alberga vida. Con el 71% de su superficie cubierta de agua líquida, la Tierra posee condiciones únicas que han permitido la evolución de la vida durante 3.800 millones de años. Nuestra atmósfera de nitrógeno y oxígeno, junto con el campo magnético generado por el núcleo de hierro líquido, nos protege de la radiación solar. La inclinación del eje terrestre de 23,5° produce las estaciones del año. En este modelo, estarías parado a 37,61 metros del Sol, en un planeta del tamaño de un grano de pimienta de 3,2 mm.',
+    descripcion: 'La Tierra es nuestro hogar y el único planeta conocido que alberga vida. Con el 71% de su superficie cubierta de agua líquida, la Tierra posee condiciones únicas que han permitido la evolución de la vida durante 3.800 millones de años. Nuestra atmósfera de nitrógeno y oxígeno, junto con el campo magnético generado por el núcleo de hierro líquido, nos protege de la radiación solar. La inclinación del eje terrestre de 23,5° produce las estaciones del año. En este modelo, estarías parado a 48,36 metros del Sol, en un planeta del tamaño de una bolita de 4,1 mm.',
     datosClave: [
       { label: 'Período orbital', valor: '365,25 días' },
       { label: 'Temperatura media', valor: '15 °C' },
@@ -147,7 +147,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '1 (Luna)' },
       { label: 'Distancia al Sol', valor: '149,6 millones de km (1 UA)' }
     ],
-    coords: { lat: -41.143662, lng: -73.023888 }
+    coords: { lat: -41.130264, lng: -73.026877 }
   },
 
   marte: {
@@ -162,24 +162,24 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA00407.jpg',
     imagenCredito: 'NASA/Viking',
     diametroReal: 6779,
-    diametroModelo: 0.1704,
+    diametroModelo: 0.2191,
     distanciaRealSol: 227.9,
-    distanciaModeloSol: 57.30,
+    distanciaModeloSol: 73.67,
     lunas: [
       {
         nombre: 'Fobos',
         diametroReal: 22.2,
-        diametroModelo: 0.00056,
+        diametroModelo: 0.000718,
         distanciaReal: 9376,
-        distanciaModelo: 0.00236,
+        distanciaModelo: 0.3031,
         descripcion: 'Luna irregular, probablemente un asteroide capturado. Orbita tan cerca de Marte que se dirige a chocar con él en unos 50 millones de años.'
       },
       {
         nombre: 'Deimos',
         diametroReal: 12.6,
-        diametroModelo: 0.00032,
+        diametroModelo: 0.000407,
         distanciaReal: 23463,
-        distanciaModelo: 0.0059,
+        distanciaModelo: 0.7585,
         descripcion: 'La luna más pequeña y exterior de Marte. También es un asteroide capturado.'
       }
     ],
@@ -192,7 +192,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '2 (Fobos y Deimos)' },
       { label: 'Distancia al Sol', valor: '227,9 millones de km' }
     ],
-    coords: { lat: -41.143774, lng: -73.023706 }
+    coords: { lat: -41.130408, lng: -73.026643 }
   },
 
   jupiter: {
@@ -207,40 +207,40 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA02873.jpg',
     imagenCredito: 'NASA/Juno',
     diametroReal: 139820,
-    diametroModelo: 3.515,
+    diametroModelo: 4.519,
     distanciaRealSol: 778.5,
-    distanciaModeloSol: 195.8,
+    distanciaModeloSol: 251.7,
     lunas: [
       {
         nombre: 'Ío',
         diametroReal: 3643,
-        diametroModelo: 0.0916,
+        diametroModelo: 0.1178,
         distanciaReal: 421800,
-        distanciaModelo: 10.6,
+        distanciaModelo: 13.63,
         descripcion: 'La luna más volcanicamente activa del sistema solar. Cientos de volcanes en erupción continua moldean su superficie color azufre. Las fuerzas de marea de Júpiter generan suficiente calor interno para mantener este inferno geológico.'
       },
       {
         nombre: 'Europa',
         diametroReal: 3122,
-        diametroModelo: 0.0785,
+        diametroModelo: 0.1014,
         distanciaReal: 671100,
-        distanciaModelo: 16.9,
+        distanciaModelo: 21.69,
         descripcion: 'Una de las lunas más prometedoras para la búsqueda de vida extraterrestre. Bajo su corteza de hielo se esconde un océano de agua líquida más grande que todos los océanos de la Tierra combinados.'
       },
       {
         nombre: 'Ganímedes',
         diametroReal: 5268,
-        diametroModelo: 0.1324,
+        diametroModelo: 0.1703,
         distanciaReal: 1070400,
-        distanciaModelo: 26.9,
+        distanciaModelo: 34.59,
         descripcion: 'La luna más grande del sistema solar, incluso más grande que el planeta Mercurio. Tiene su propio campo magnético, algo único entre las lunas conocidas.'
       },
       {
         nombre: 'Calisto',
         diametroReal: 4821,
-        diametroModelo: 0.1212,
+        diametroModelo: 0.1559,
         distanciaReal: 1882700,
-        distanciaModelo: 47.3,
+        distanciaModelo: 60.87,
         descripcion: 'La superficie más craterizada del sistema solar. Tiene posiblemente un océano subsuperficial y es candidata a exploración futura por ser más accesible que Europa.'
       }
     ],
@@ -253,7 +253,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '95' },
       { label: 'Distancia al Sol', valor: '778,5 millones de km' }
     ],
-    coords: { lat: -41.144561, lng: -73.022424 }
+    coords: { lat: -41.131417, lng: -73.024996 }
   },
 
   saturno: {
@@ -268,16 +268,16 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA04913.jpg',
     imagenCredito: 'NASA/Cassini',
     diametroReal: 116460,
-    diametroModelo: 2.929,
+    diametroModelo: 3.766,
     distanciaRealSol: 1432,
-    distanciaModeloSol: 360.3,
+    distanciaModeloSol: 463.3,
     lunas: [
       {
         nombre: 'Titán',
         diametroReal: 5151,
-        diametroModelo: 0.1295,
+        diametroModelo: 0.1666,
         distanciaReal: 1221870,
-        distanciaModelo: 30.7,
+        distanciaModelo: 39.50,
         descripcion: 'La única luna del sistema solar con una atmósfera densa (más densa que la de la Tierra). Tiene lagos y ríos de metano líquido en su superficie y un ciclo del metano análogo al ciclo del agua en la Tierra. La misión Cassini-Huygens exploró Titán en detalle entre 2004 y 2017.'
       }
     ],
@@ -290,7 +290,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '146' },
       { label: 'Distancia al Sol', valor: '1.432 millones de km' }
     ],
-    coords: { lat: -41.145496, lng: -73.020901 }
+    coords: { lat: -41.132618, lng: -73.023037 }
   },
 
   urano: {
@@ -305,14 +305,14 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA18182.jpg',
     imagenCredito: 'NASA/Voyager 2',
     diametroReal: 50724,
-    diametroModelo: 1.275,
-    distanciaRealSol: 2867,
-    distanciaModeloSol: 723.4,
+    diametroModelo: 1.640,
+    distanciaRealSol: 2877,
+    distanciaModeloSol: 930.1,
     lunas: [
-      { nombre: 'Ariel', diametroReal: 1158, diametroModelo: 0.0291, distanciaReal: 190900, distanciaModelo: 4.80, descripcion: 'Luna con mezcla de cráteres y cañones.' },
-      { nombre: 'Umbriel', diametroReal: 1169, diametroModelo: 0.0294, distanciaReal: 266000, distanciaModelo: 6.69, descripcion: 'Luna de superficie oscura y antigua.' },
-      { nombre: 'Titania', diametroReal: 1578, diametroModelo: 0.0397, distanciaReal: 436300, distanciaModelo: 10.97, descripcion: 'La luna más grande de Urano.' },
-      { nombre: 'Oberón', diametroReal: 1523, diametroModelo: 0.0383, distanciaReal: 583500, distanciaModelo: 14.67, descripcion: 'Luna con cráteres profundos y antiguas montañas.' }
+      { nombre: 'Ariel', diametroReal: 1158, diametroModelo: 0.03743, distanciaReal: 190900, distanciaModelo: 6.171, descripcion: 'Luna con mezcla de cráteres y cañones.' },
+      { nombre: 'Umbriel', diametroReal: 1169, diametroModelo: 0.03781, distanciaReal: 266000, distanciaModelo: 8.599, descripcion: 'Luna de superficie oscura y antigua.' },
+      { nombre: 'Titania', diametroReal: 1578, diametroModelo: 0.05101, distanciaReal: 436300, distanciaModelo: 14.103, descripcion: 'La luna más grande de Urano.' },
+      { nombre: 'Oberón', diametroReal: 1523, diametroModelo: 0.04923, distanciaReal: 583500, distanciaModelo: 18.863, descripcion: 'Luna con cráteres profundos y antiguas montañas.' }
     ],
     descripcion: 'Urano es un gigante de hielo que gira sobre su lado, con su eje de rotación inclinado casi 98 grados respecto a su órbita. Este "planeta volcado" resulta en que sus polos reciben más luz solar que su ecuador en ciertas épocas del año. Se cree que este inusual eje fue causado por una colisión con un objeto del tamaño de la Tierra hace miles de millones de años. Urano fue el primer planeta descubierto con telescopio, observado por William Herschel en 1781. Tiene 13 anillos delgados y oscuros, y 27 lunas conocidas, todas nombradas en honor a personajes de las obras de Shakespeare y Alexander Pope.',
     datosClave: [
@@ -323,7 +323,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '27' },
       { label: 'Distancia al Sol', valor: '2.867 millones de km' }
     ],
-    coords: { lat: -41.147559, lng: -73.017541 }
+    coords: { lat: -41.135265, lng: -73.018716 }
   },
 
   neptuno: {
@@ -337,21 +337,21 @@ const SISTEMA_SOLAR = {
     imagen: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia01492-neptune-full-disk-16x9-1.jpg',
     imagenFallback: 'https://photojournal.jpl.nasa.gov/jpeg/PIA01492.jpg',
     imagenCredito: 'NASA/Voyager 2',
-    diametroReal: 49244,
-    diametroModelo: 1.238,
-    distanciaRealSol: 4495,
-    distanciaModeloSol: 1132,
+    diametroReal: 49250,
+    diametroModelo: 1.592,
+    distanciaRealSol: 4503,
+    distanciaModeloSol: 1456,
     lunas: [
       {
         nombre: 'Tritón',
         diametroReal: 2707,
-        diametroModelo: 0.0681,
+        diametroModelo: 0.08751,
         distanciaReal: 354759,
-        distanciaModelo: 8.92,
+        distanciaModelo: 11.47,
         descripcion: 'Una de las lunas más fascinantes del sistema solar. Orbita a Neptuno en dirección contraria a la rotación del planeta (órbita retrógrada), lo que sugiere que fue capturada del Cinturón de Kuiper. Tiene géiseres activos de nitrógeno y su órbita está decayendo gradualmente: en aproximadamente 3.600 millones de años, será destruida por las fuerzas de marea de Neptuno.'
       }
     ],
-    descripcion: 'Neptuno es el planeta más lejano del sistema solar, situado a más de 4.500 millones de kilómetros del Sol. Con velocidades de viento que pueden superar los 2.100 km/h, alberga las tormentas más violentas del sistema solar. La sonda Voyager 2 es la única nave espacial que ha visitado Neptuno, en 1989, y ha tardado 12 años en llegar allí. Neptuno fue el primer planeta descubierto mediante predicciones matemáticas, antes de ser observado directamente en 1846. En este modelo a escala, Neptuno está a 1.132 metros del Sol, casi en el otro extremo de la costanera.',
+    descripcion: 'Neptuno es el planeta más lejano del sistema solar, situado a más de 4.500 millones de kilómetros del Sol. Con velocidades de viento que pueden superar los 2.100 km/h, alberga las tormentas más violentas del sistema solar. La sonda Voyager 2 es la única nave espacial que ha visitado Neptuno, en 1989, y tardó 12 años en llegar allí. Neptuno fue el primer planeta descubierto mediante predicciones matemáticas, antes de ser observado directamente en 1846. En este modelo a escala, Neptuno está a 1.456 metros del Sol, en el extremo de la costanera.',
     datosClave: [
       { label: 'Período orbital', valor: '165 años terrestres' },
       { label: 'Velocidad del viento', valor: 'hasta 2.100 km/h' },
@@ -360,7 +360,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '16' },
       { label: 'Distancia al Sol', valor: '4.495 millones de km' }
     ],
-    coords: { lat: -41.149881, lng: -73.013759 }
+    coords: { lat: -41.138249, lng: -73.013850 }
   }
 };
 
