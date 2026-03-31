@@ -63,10 +63,10 @@
 
           <div class="planeta-visual">
             <div id="planeta-esfera-hero" class="planeta-esfera-hero" style="width:180px;height:180px;position:relative">
-              <img id="planeta-img" src="" alt=""
+              <img id="planeta-img" alt=""
                 style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 0.4s"
                 onload="this.style.opacity='1'"
-                onerror="this.src=this.dataset.fallback;this.onerror=null" />
+                onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback}else{this.style.opacity='0'}" />
             </div>
             <div id="escala-label" style="font-size:0.72rem;color:var(--text-2);text-align:center;margin-top:0.25rem"></div>
             <div id="imagen-credito" style="font-size:0.65rem;color:var(--text-2);opacity:0.6;text-align:center"></div>
