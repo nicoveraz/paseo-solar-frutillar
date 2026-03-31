@@ -2,9 +2,9 @@
 
 Modelo a escala del sistema solar emplazado en la costanera de Frutillar, Chile.
 
-**Escala:** 1:3.977.140.000
-**El Sol:** 35 cm de diámetro — ubicado en el centro (41°8'36"S, 73°1'27"O)
-**Neptuno:** a 1.132 metros al este del Sol
+**Escala:** 1:3.093.330.000
+**El Sol:** 45 cm de diámetro — ubicado en la costanera (-41.129990, -73.027325)
+**Neptuno:** a 1.456 metros al sureste del Sol
 
 ## Estructura
 
@@ -34,17 +34,17 @@ paseo-solar-frutillar/
 
 ## Datos de escala
 
-| Planeta  | ⌀ modelo   | Dist. al Sol (modelo) | Coordenadas GPS         |
-|----------|------------|----------------------|-------------------------|
-| Sol      | 35 cm      | —                    | -41.143448, -73.024236  |
-| Mercurio | 1.227 mm   | 14.56 m              | -41.143448, -73.024062  |
-| Venus    | 3.042 mm   | 27.21 m              | -41.143448, -73.023911  |
-| Tierra   | 3.203 mm   | 37.61 m              | -41.143448, -73.023787  |
-| Marte    | 1.704 mm   | 57.30 m              | -41.143448, -73.023553  |
-| Júpiter  | 3.515 cm   | 195.8 m              | -41.143448, -73.021901  |
-| Saturno  | 2.929 cm   | 360.3 m              | -41.143448, -73.019940  |
-| Urano    | 1.275 cm   | 723.4 m              | -41.143448, -73.015609  |
-| Neptuno  | 1.238 cm   | 1132 m               | -41.143448, -73.010716  |
+| Planeta  | ⌀ modelo   | Dist. al Sol (modelo) | Coordenadas GPS           |
+|----------|------------|----------------------|---------------------------|
+| Sol      | 45 cm      | —                    | -41.129990, -73.027325    |
+| Mercurio | 1.577 mm   | 18.72 m              | -41.130096, -73.027152    |
+| Venus    | 3.912 mm   | 34.98 m              | -41.130188, -73.027001    |
+| Tierra   | 4.119 mm   | 48.36 m              | -41.130264, -73.026877    |
+| Marte    | 2.191 mm   | 73.67 m              | -41.130408, -73.026643    |
+| Júpiter  | 4.519 cm   | 251.7 m              | -41.131417, -73.024996    |
+| Saturno  | 3.766 cm   | 463.3 m              | -41.132618, -73.023037    |
+| Urano    | 1.640 cm   | 930.1 m              | -41.135265, -73.018716    |
+| Neptuno  | 1.592 cm   | 1456 m               | -41.138249, -73.013850    |
 
 ## Uso local
 
