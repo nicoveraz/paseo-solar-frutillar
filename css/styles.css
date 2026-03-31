@@ -78,7 +78,7 @@ code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875em; backg
   padding: 0.875rem 0;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
 }
 .site-header .container {
   display: flex;
