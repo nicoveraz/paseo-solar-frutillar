@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Planeta — Paseo Solar Frutillar</title>
+  <meta name="description" id="page-desc" content="Información sobre el planeta en el Paseo Solar Frutillar." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #mini-mapa {
+      height: 180px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .leaflet-popup-content-wrapper {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border-hi) !important;
+      border-radius: var(--radius) !important;
+    }
+    .leaflet-popup-tip-container { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="index.html" class="site-logo">
+        <div class="sol-icon"></div>
+        <div class="site-logo-text">
+          <strong>Paseo Solar Frutillar</strong>
+          <span>Escala 1:3.977.140.000</span>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html" class="nav-link">
+          <span class="material-symbols-outlined">arrow_back</span> Inicio
+        </a>
+        <a href="qr-codes.html" class="nav-link">
+          <span class="material-symbols-outlined">qr_code_2</span> QR
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <div style="padding:1rem 0;font-size:0.8rem;color:var(--text-2);display:flex;align-items:center;gap:0.375rem">
+        <a href="index.html" style="color:var(--text-2);display:flex;align-items:center;gap:0.25rem">
+          <span class="material-symbols-outlined" style="font-size:14px">home</span> Inicio
+        </a>
+        <span class="material-symbols-outlined" style="font-size:14px">chevron_right</span>
+        <span id="breadcrumb-nombre">Planeta</span>
+      </div>
+
+      <!-- Hero -->
+      <section class="planeta-hero">
+        <div class="planeta-hero-inner">
+
+          <div class="planeta-visual">
+            <div id="planeta-esfera-hero" class="planeta-esfera-hero" style="width:140px;height:140px"></div>
+            <div id="escala-label" style="font-size:0.75rem;color:var(--text-2);text-align:center"></div>
+          </div>
+
+          <div class="planeta-hero-info">
+            <span class="planeta-simbolo" id="planeta-simbolo"></span>
+            <h1 class="planeta-nombre" id="planeta-nombre">Cargando…</h1>
+            <div class="tipo-badge">
+              <span class="material-symbols-outlined" style="font-size:14px">category</span>
+              <span id="planeta-tipo"></span>
+            </div>
+
+            <div class="stats-grid" id="stats-grid"></div>
+
+            <!-- AR block -->
+            <div class="ar-block">
+              <div class="ar-block-text">
+                <h3>Realidad aumentada</h3>
+                <p>Apunta tu teléfono a lo largo de la costanera para ver los otros planetas.</p>
+              </div>
+              <div class="ar-block-actions">
+                <a id="btn-ar" href="#" class="btn btn-ar btn-sm">
+                  <span class="material-symbols-outlined" style="font-size:16px">view_in_ar</span>
+                  Abrir AR
+                </a>
+                <a href="index.html#mapa-section" class="btn btn-secondary btn-sm">
+                  <span class="material-symbols-outlined" style="font-size:16px">map</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Descripción -->
+      <div class="planeta-descripcion" id="planeta-descripcion"></div>
+
+      <!-- Datos clave -->
+      <div class="data-table" id="datos-clave" style="display:none;margin-bottom:1rem">
+        <div class="data-table-header">
+          <span class="material-symbols-outlined" style="font-size:16px">info</span>
+          Datos clave
+        </div>
+        <div id="datos-clave-lista"></div>
+      </div>
+
+      <!-- Lunas -->
+      <div class="data-table" id="lunas-section" style="display:none;margin-bottom:1rem">
+        <div class="data-table-header">
+          <span class="material-symbols-outlined" style="font-size:16px">dark_mode</span>
+          <span id="lunas-titulo">Lunas</span>
+        </div>
+        <div id="lunas-lista"></div>
+      </div>
+
+      <!-- Distancias -->
+      <div class="data-table" id="distancias-section" style="display:none;margin-bottom:1rem">
+        <div class="data-table-header">
+          <span class="material-symbols-outlined" style="font-size:16px">straighten</span>
+          Distancias a otros planetas (modelo)
+        </div>
+        <div id="distancias-lista"></div>
+      </div>
+
+      <!-- Mini mapa -->
+      <div style="margin-bottom:1rem">
+        <div class="section-title" style="margin-bottom:0.5rem">
+          <span class="material-symbols-outlined" style="font-size:16px">location_on</span>
+          Posición en la costanera
+        </div>
+        <div id="mini-mapa"></div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Navegación prev/next -->
+      <nav class="planeta-nav" id="planeta-nav"></nav>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Paseo Solar Frutillar · Costanera de Frutillar, Región de Los Lagos</p>
+      <p>Datos: NASA/JPL</p>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/planets-data.js"></script>
+  <script>
+    (function () {
+      const params    = new URLSearchParams(window.location.search);
+      const planetaId = params.get('planet') || 'tierra';
+      const planeta   = getPlaneta(planetaId);
+
+      if (!planeta) {
+        document.body.innerHTML = '<div style="padding:4rem;text-align:center"><p>Planeta no encontrado.</p><a href="index.html">← Volver</a></div>';
+        return;
+      }
+
+      // Meta / título
+      document.getElementById('page-title').textContent      = `${planeta.nombre} — Paseo Solar Frutillar`;
+      document.getElementById('page-desc').setAttribute('content', planeta.descripcion.slice(0, 160));
+      document.getElementById('breadcrumb-nombre').textContent = planeta.nombre;
+
+      // Esfera hero
+      const esfera = document.getElementById('planeta-esfera-hero');
+      esfera.style.background  = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color} 60%, ${planeta.colorSecundario})`;
+      esfera.style.boxShadow   = `inset -6px -6px 16px rgba(0,0,0,0.45), 0 0 40px ${planeta.color}44`;
+
+      // Header info
+      document.getElementById('planeta-simbolo').textContent = planeta.simbolo || '';
+      document.getElementById('planeta-nombre').textContent  = planeta.nombre;
+      document.getElementById('planeta-tipo').textContent    = planeta.tipo;
+      document.getElementById('escala-label').textContent    =
+        planeta.id === 'sol' ? '⌀ modelo: 35 cm' : `⌀ modelo: ${formatearDiametro(planeta.diametroModelo)}`;
+
+      document.getElementById('btn-ar').href = `ar.html?planet=${planeta.id}`;
+
+      // Stats
+      const statsGrid = document.getElementById('stats-grid');
+      const statItems = [
+        { label: '⌀ real',       valor: planeta.id === 'sol' ? '1.391.000 km' : planeta.diametroReal.toLocaleString('es-CL') + ' km' },
+        { label: '⌀ modelo',     valor: planeta.id === 'sol' ? '35 cm' : formatearDiametro(planeta.diametroModelo) },
+        ...(planeta.id !== 'sol' ? [
+          { label: 'Dist. real',   valor: planeta.distanciaRealSol.toLocaleString('es-CL') + ' M km' },
+          { label: 'Dist. modelo', valor: planeta.distanciaModeloSol < 1000 ? planeta.distanciaModeloSol.toFixed(2) + ' m' : (planeta.distanciaModeloSol/1000).toFixed(3) + ' km' },
+        ] : []),
+        { label: 'Lunas',        valor: planeta.lunas.length > 0 ? String(planeta.lunas.length) : '0' },
+      ];
+      statItems.forEach(s => {
+        statsGrid.innerHTML += `<div class="stat-card"><span class="stat-valor">${s.valor}</span><span class="stat-label">${s.label}</span></div>`;
+      });
+
+      // Descripción
+      document.getElementById('planeta-descripcion').textContent = planeta.descripcion;
+
+      // Datos clave
+      if (planeta.datosClave?.length) {
+        const el = document.getElementById('datos-clave');
+        el.style.display = 'block';
+        planeta.datosClave.forEach(d => {
+          document.getElementById('datos-clave-lista').innerHTML += `
+            <div class="data-row">
+              <span class="data-row-label">${d.label}</span>
+              <span class="data-row-value">${d.valor}</span>
+            </div>`;
+        });
+      }
+
+      // Lunas
+      if (planeta.lunas?.length) {
+        document.getElementById('lunas-section').style.display = 'block';
+        document.getElementById('lunas-titulo').textContent = `Lunas de ${planeta.nombre} (${planeta.lunas.length})`;
+        planeta.lunas.forEach(luna => {
+          document.getElementById('lunas-lista').innerHTML += `
+            <div class="luna-item">
+              <div class="luna-nombre">${luna.nombre}</div>
+              <div class="luna-stats">
+                <span>⌀ ${luna.diametroReal.toLocaleString('es-CL')} km</span>
+                <span>modelo: ${formatearDiametro(luna.diametroModelo)}</span>
+                <span>dist. planeta: ${formatearDistancia(luna.distanciaModelo)}</span>
+              </div>
+              <div class="luna-desc">${luna.descripcion}</div>
+            </div>`;
+        });
+      }
+
+      // Distancias
+      if (planeta.id !== 'sol') {
+        document.getElementById('distancias-section').style.display = 'block';
+        ORDEN_PLANETAS.forEach(oid => {
+          if (oid === planeta.id) return;
+          const otro  = SISTEMA_SOLAR[oid];
+          const dist  = Math.abs(otro.distanciaModeloSol - planeta.distanciaModeloSol);
+          const dir   = otro.distanciaModeloSol > planeta.distanciaModeloSol ? '→' : '←';
+          document.getElementById('distancias-lista').innerHTML += `
+            <div class="data-row">
+              <span class="data-row-label" style="display:flex;align-items:center;gap:0.5rem">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${otro.color};flex-shrink:0"></span>
+                ${dir} ${otro.nombre}
+              </span>
+              <span class="data-row-value">${dist < 1000 ? dist.toFixed(1)+' m' : (dist/1000).toFixed(3)+' km'}</span>
+            </div>`;
+        });
+      }
+
+      // Mini mapa
+      setTimeout(() => {
+        const map = L.map('mini-mapa', {
+          center: [planeta.coords.lat, planeta.coords.lng],
+          zoom: 15,
+          zoomControl: false, attributionControl: false,
+          scrollWheelZoom: false, dragging: false, doubleClickZoom: false
+        });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd', maxZoom: 20
+        }).addTo(map);
+        L.polyline(
+          ORDEN_PLANETAS.map(id => [SISTEMA_SOLAR[id].coords.lat, SISTEMA_SOLAR[id].coords.lng]),
+          { color: 'rgba(253,184,19,0.2)', weight: 1.5, dashArray: '4 3' }
+        ).addTo(map);
+        ORDEN_PLANETAS.forEach(oid => {
+          const op = SISTEMA_SOLAR[oid];
+          const isThis = oid === planeta.id;
+          L.circleMarker([op.coords.lat, op.coords.lng], {
+            radius: isThis ? 7 : 3,
+            fillColor: op.color, fillOpacity: isThis ? 1 : 0.5,
+            color: isThis ? '#fff' : 'transparent', weight: isThis ? 1.5 : 0
+          }).addTo(map).bindTooltip(op.nombre);
+        });
+      }, 100);
+
+      // Nav prev/next
+      const nav      = document.getElementById('planeta-nav');
+      const anterior = getPlanetaAnterior(planeta.id);
+      const siguiente = getPlanetaSiguiente(planeta.id);
+
+      nav.innerHTML = `
+        ${anterior ? `
+          <a href="planet.html?planet=${anterior.id}" class="planeta-nav-btn">
+            <span class="planeta-nav-label"><span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> Anterior</span>
+            <span class="planeta-nav-nombre">${anterior.nombre}</span>
+            <span class="planeta-nav-dist">${anterior.id !== 'sol' ? anterior.distanciaModeloSol.toFixed(1)+' m' : 'Centro'}</span>
+          </a>` : '<div></div>'}
+        ${siguiente ? `
+          <a href="planet.html?planet=${siguiente.id}" class="planeta-nav-btn siguiente">
+            <span class="planeta-nav-label">Siguiente <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span></span>
+            <span class="planeta-nav-nombre">${siguiente.nombre}</span>
+            <span class="planeta-nav-dist">${siguiente.distanciaModeloSol.toFixed(1)} m</span>
+          </a>` : '<div></div>'}
+      `;
+    })();
+  </script>
+</body>
+</html>

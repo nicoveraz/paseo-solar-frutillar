@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Códigos QR — Paseo Solar Frutillar</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="index.html" class="site-logo">
+        <div class="sol-icon"></div>
+        <div class="site-logo-text">
+          <strong>Paseo Solar Frutillar</strong>
+          <span>Escala 1:3.977.140.000</span>
+        </div>
+      </a>
+      <nav class="site-nav">
+        <a href="index.html" class="nav-link">
+          <span class="material-symbols-outlined">arrow_back</span> Inicio
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="hero" style="padding-top:2rem;text-align:left">
+        <h1>Códigos QR</h1>
+        <p style="max-width:none">Genera los QR para los pedestales. Configura la URL base según el hosting del sitio.</p>
+      </div>
+
+      <!-- URL config -->
+      <div class="card" style="padding:1.25rem;margin-bottom:2rem">
+        <label for="base-url-input" class="section-title" style="display:flex;margin-bottom:0.625rem">
+          <span class="material-symbols-outlined" style="font-size:16px">link</span>
+          URL base del sitio
+        </label>
+        <div style="display:flex;gap:0.625rem;flex-wrap:wrap">
+          <input
+            type="url"
+            id="base-url-input"
+            placeholder="https://paseo-solar-frutillar.cl"
+            style="
+              flex:1; min-width:220px;
+              background:var(--surface-2); border:1px solid var(--border-hi);
+              border-radius:8px; padding:0.55rem 0.875rem;
+              color:var(--text); font-size:0.875rem; font-family:var(--font);
+              outline:none;
+            "
+          />
+          <button id="btn-descargar-todos" class="btn btn-secondary">
+            <span class="material-symbols-outlined" style="font-size:16px">download</span>
+            Descargar todos
+          </button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-2);margin:0.5rem 0 0">
+          Genera URLs como <code>https://tudominio.cl/planet.html?planet=mercurio</code>
+        </p>
+      </div>
+
+      <!-- QR grid -->
+      <div class="qr-grid" id="qr-grid">
+        <div class="loading">
+          <div class="spinner"></div>
+          Generando códigos QR…
+        </div>
+      </div>
+
+      <!-- Print instructions -->
+      <div class="card" style="padding:1.25rem;margin-bottom:3rem">
+        <div class="section-title" style="margin-bottom:1rem">
+          <span class="material-symbols-outlined" style="font-size:16px">print</span>
+          Instrucciones para pedestales
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
+          <div style="background:var(--surface-2);padding:0.875rem 1rem">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-2);margin-bottom:0.25rem">Tamaño mínimo</div>
+            <div style="font-size:0.875rem">4 × 4 cm por QR</div>
+          </div>
+          <div style="background:var(--surface-2);padding:0.875rem 1rem">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-2);margin-bottom:0.25rem">Material</div>
+            <div style="font-size:0.875rem">Plastificado o metal grabado</div>
+          </div>
+          <div style="background:var(--surface-2);padding:0.875rem 1rem">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-2);margin-bottom:0.25rem">Altura</div>
+            <div style="font-size:0.875rem">120–140 cm del suelo</div>
+          </div>
+          <div style="background:var(--surface-2);padding:0.875rem 1rem">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-2);margin-bottom:0.25rem">Orientación</div>
+            <div style="font-size:0.875rem">Cara norte para accesibilidad</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Paseo Solar Frutillar · Costanera de Frutillar, Región de Los Lagos</p>
+    </div>
+  </footer>
+
+  <script src="js/planets-data.js"></script>
+  <script src="js/qr-generator.js"></script>
+</body>
+</html>

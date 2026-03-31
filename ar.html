@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title id="ar-page-title">AR — Paseo Solar Frutillar</title>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar-nft.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+
+    /* Welcome / permissions screen */
+    #ar-welcome {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 2rem 1.5rem;
+      z-index: 2000;
+    }
+    #ar-welcome h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+    #ar-welcome > p { color: var(--text-2); font-size: 0.875rem; max-width: 340px; margin: 0 auto 1.5rem; }
+
+    .ar-planet-chip {
+      display: flex; align-items: center; gap: 0.75rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.75rem 1rem;
+      width: 100%; max-width: 300px; margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    .ar-planet-chip-dot { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+    .ar-planet-chip-name { font-weight: 600; font-size: 0.9rem; }
+    .ar-planet-chip-sub  { font-size: 0.75rem; color: var(--text-2); }
+
+    .ar-btn-group {
+      display: flex; flex-direction: column; gap: 0.625rem;
+      width: 100%; max-width: 280px;
+    }
+
+    /* AR scene wrapper */
+    #ar-scene-wrapper {
+      display: none; position: fixed; inset: 0; z-index: 1;
+    }
+    #ar-scene-wrapper a-scene { width: 100% !important; height: 100% !important; }
+
+    /* Back button — always on top */
+    #ar-back-btn {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 12px);
+      left: 12px;
+      z-index: 3000;
+      background: rgba(10,10,15,0.85);
+      border: 1px solid var(--border-hi);
+      color: var(--text);
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      backdrop-filter: blur(12px);
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    /* Loading */
+    #ar-loading {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1500; text-align: center;
+      color: var(--text); pointer-events: none; display: none;
+    }
+    #ar-loading p { font-size: 0.875rem; color: var(--text-2); margin: 0.5rem 0 0; }
+
+    /* HUD */
+    #ar-hud {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 2000; pointer-events: none; display: none;
+    }
+    .hud-inner {
+      background: linear-gradient(0deg, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0.6) 75%, transparent 100%);
+      padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+      pointer-events: auto;
+    }
+    .hud-row-1 {
+      display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.5rem;
+    }
+    #hud-dot   { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+    #hud-name  { font-size: 1.15rem; font-weight: 700; }
+    #hud-sub   { font-size: 0.78rem; color: var(--text-2); margin-bottom: 0.75rem; }
+    .hud-row-2 {
+      display: flex; gap: 0.5rem;
+    }
+    .hud-row-2 a {
+      flex: 1; text-align: center; padding: 0.5rem;
+      border-radius: 8px; font-size: 0.8rem; font-weight: 500;
+      text-decoration: none; display: flex; align-items: center;
+      justify-content: center; gap: 0.3rem;
+    }
+    .hud-btn-info {
+      background: var(--surface-2); color: var(--text);
+      border: 1px solid var(--border-hi);
+    }
+    .hud-btn-nav {
+      background: rgba(253,184,19,0.1); color: var(--accent);
+      border: 1px solid rgba(253,184,19,0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back button (always visible) -->
+  <a id="ar-back-btn" href="index.html">
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
+    Volver
+  </a>
+
+  <!-- Welcome screen -->
+  <div id="ar-welcome">
+    <div class="ar-permiso-icon">
+      <span class="material-symbols-outlined" style="font-size:48px;color:var(--text-2)">view_in_ar</span>
+    </div>
+    <h2>Realidad aumentada</h2>
+    <p id="ar-intro-text">Apunta tu teléfono a lo largo de la costanera para ver los planetas en su posición exacta.</p>
+
+    <div class="ar-planet-chip" id="ar-planet-chip" style="display:none">
+      <div class="ar-planet-chip-dot" id="chip-dot"></div>
+      <div>
+        <div class="ar-planet-chip-name" id="chip-name"></div>
+        <div class="ar-planet-chip-sub"  id="chip-sub"></div>
+      </div>
+    </div>
+
+    <ul class="permiso-lista" style="margin-bottom:1.5rem">
+      <li>
+        <span class="material-symbols-outlined">photo_camera</span>
+        Cámara — para ver el entorno real
+      </li>
+      <li>
+        <span class="material-symbols-outlined">my_location</span>
+        GPS — para calcular posiciones
+      </li>
+      <li>
+        <span class="material-symbols-outlined">compass_calibration</span>
+        Orientación — para la brújula
+      </li>
+    </ul>
+
+    <p style="font-size:0.75rem;color:var(--text-2);max-width:300px;margin:0 auto 1.25rem">
+      Requiere Chrome o Safari moderno. Funciona mejor estando físicamente en la costanera de Frutillar.
+    </p>
+
+    <div class="ar-btn-group">
+      <button id="btn-iniciar-ar" class="btn btn-ar" style="width:100%;justify-content:center">
+        <span class="material-symbols-outlined">rocket_launch</span>
+        Iniciar AR
+      </button>
+      <a id="btn-volver-planeta" href="planet.html" class="btn btn-secondary" style="width:100%;justify-content:center">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Información del planeta
+      </a>
+    </div>
+  </div>
+
+  <!-- AR scene (injected by JS) -->
+  <div id="ar-scene-wrapper"></div>
+
+  <!-- Loading indicator -->
+  <div id="ar-loading">
+    <div class="spinner" style="width:28px;height:28px;margin:0 auto"></div>
+    <p>Cargando escena AR…</p>
+  </div>
+
+  <!-- HUD -->
+  <div id="ar-hud">
+    <div class="hud-inner">
+      <div class="hud-row-1">
+        <div id="hud-dot"></div>
+        <div id="hud-name"></div>
+      </div>
+      <div id="hud-sub"></div>
+      <div class="hud-row-2">
+        <a id="hud-btn-prev" href="#" class="hud-btn-nav" style="display:none">
+          <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
+          <span id="hud-prev-label">Anterior</span>
+        </a>
+        <a id="hud-btn-info" href="#" class="hud-btn-info">
+          <span class="material-symbols-outlined" style="font-size:16px">info</span>
+          Detalles
+        </a>
+        <a id="hud-btn-next" href="#" class="hud-btn-nav" style="display:none">
+          <span id="hud-next-label">Siguiente</span>
+          <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/planets-data.js"></script>
+  <script src="js/ar-view.js"></script>
+  <script>
+    (function () {
+      const params    = new URLSearchParams(window.location.search);
+      const planetaId = params.get('planet') || 'tierra';
+      const planeta   = getPlaneta(planetaId);
+      if (!planeta) return;
+
+      document.getElementById('ar-page-title').textContent      = `AR: ${planeta.nombre} — Paseo Solar Frutillar`;
+      document.getElementById('ar-back-btn').href               = `planet.html?planet=${planetaId}`;
+      document.getElementById('btn-volver-planeta').href        = `planet.html?planet=${planetaId}`;
+
+      // Planet chip
+      const chip = document.getElementById('ar-planet-chip');
+      chip.style.display = 'flex';
+      const dot = document.getElementById('chip-dot');
+      dot.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color})`;
+      dot.style.boxShadow  = `0 0 10px ${planeta.color}88`;
+      document.getElementById('chip-name').textContent = planeta.nombre;
+      document.getElementById('chip-sub').textContent  = planeta.id !== 'sol'
+        ? `A ${planeta.distanciaModeloSol.toFixed(1)} m del Sol`
+        : 'Centro del sistema solar';
+
+      document.getElementById('ar-intro-text').textContent = planeta.id !== 'sol'
+        ? `Estás en ${planeta.nombre}. Apunta hacia la costanera para ver los demás planetas.`
+        : `Estás en el Sol. Apunta hacia el este para ver todos los planetas.`;
+
+      // HUD
+      const hHud  = document.getElementById('ar-hud');
+      const hDot  = document.getElementById('hud-dot');
+      const hName = document.getElementById('hud-name');
+      const hSub  = document.getElementById('hud-sub');
+      hDot.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color})`;
+      hDot.style.boxShadow  = `0 0 8px ${planeta.color}88`;
+      hName.textContent = planeta.nombre;
+      hSub.textContent  = planeta.id !== 'sol'
+        ? `⌀ ${planeta.diametroReal.toLocaleString('es-CL')} km · ${planeta.distanciaModeloSol.toFixed(1)} m del Sol`
+        : `⌀ 1.391.000 km · Centro del sistema`;
+
+      document.getElementById('hud-btn-info').href = `planet.html?planet=${planetaId}`;
+
+      const anterior  = getPlanetaAnterior(planetaId);
+      const siguiente = getPlanetaSiguiente(planetaId);
+      if (anterior) {
+        const b = document.getElementById('hud-btn-prev');
+        b.style.display = 'flex';
+        b.href = `ar.html?planet=${anterior.id}`;
+        document.getElementById('hud-prev-label').textContent = anterior.nombre;
+      }
+      if (siguiente) {
+        const b = document.getElementById('hud-btn-next');
+        b.style.display = 'flex';
+        b.href = `ar.html?planet=${siguiente.id}`;
+        document.getElementById('hud-next-label').textContent = siguiente.nombre;
+      }
+
+      // Iniciar AR
+      document.getElementById('btn-iniciar-ar').addEventListener('click', () => {
+        document.getElementById('ar-welcome').classList.add('hidden');
+        document.getElementById('ar-loading').style.display  = 'block';
+        document.getElementById('ar-scene-wrapper').style.display = 'block';
+        hHud.style.display = 'block';
+        buildARScene(planeta);
+      });
+    })();
+  </script>
+</body>
+</html>
