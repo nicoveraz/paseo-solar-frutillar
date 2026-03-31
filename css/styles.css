@@ -97,14 +97,11 @@ code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875em; backg
   width: 34px;
   height: 34px;
   flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
 }
 .sol-icon img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  mix-blend-mode: screen;
+  object-fit: contain;
   display: block;
   filter: drop-shadow(0 0 6px rgba(253,184,19,0.9));
 }
@@ -376,7 +373,6 @@ code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875em; backg
   width: 100%;
   height: 100%;
   object-fit: contain;
-  mix-blend-mode: screen;
   opacity: 0;
   transition: opacity 0.5s;
 }
