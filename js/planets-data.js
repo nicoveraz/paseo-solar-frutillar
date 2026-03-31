@@ -1,10 +1,11 @@
 'use strict';
 
-// Escala: 1:3,093,330,000
-// El Sol (diámetro 45 cm) está en el centro de la costanera de Frutillar
-const ESCALA = 1 / 3093330000;
-const SOL_COORDS = { lat: -41.129990, lng: -73.027325 };
-const RUMBO_COSTANERA = 129.20; // grados — bearing real del Paseo Costanera Frutillar (sureste)
+// Escala: 1:3,093,333,333
+// El Sol (diámetro 45 cm) está en la costanera de Frutillar
+// Coordenadas y rumbos exportados desde configurar.html el 2025-03-31
+const ESCALA = 1 / 3093333333;
+const SOL_COORDS = { lat: -41.129935, lng: -73.027327 };
+const RUMBO_COSTANERA = 185.00; // rumbo promedio real de la costanera (≈ sur)
 
 // Calcula coordenadas GPS a partir de una distancia en metros y un rumbo
 function calcularCoordenadas(distanciaMetros, rumbo) {
@@ -54,7 +55,7 @@ const SISTEMA_SOLAR = {
       { label: 'Masa (Tierra = 1)', valor: '333.000' },
       { label: 'Rotación en el ecuador', valor: '25,4 días' }
     ],
-    coords: SOL_COORDS
+    coords: { lat: -41.129935, lng: -73.027327 }
   },
 
   mercurio: {
@@ -72,6 +73,7 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.1577,
     distanciaRealSol: 57.9,
     distanciaModeloSol: 18.72,
+    rumbo: 185.31,
     lunas: [],
     descripcion: 'Mercurio es el planeta más pequeño del sistema solar y el más cercano al Sol. Con un diámetro de apenas 4.879 km, es incluso más pequeño que algunas lunas planetarias. Su superficie, densamente cubierta de cráteres, se asemeja a la de nuestra Luna. Sin atmósfera significativa que retenga el calor, las temperaturas oscilan entre -180 °C en la sombra y 430 °C en el lado iluminado. Un año mercuriano dura solo 88 días terrestres, pero un día solar en Mercurio dura 176 días. En este modelo a escala, Mercurio sería una bolita de apenas 1,6 mm de diámetro, colocada a 18,72 metros del Sol.',
     datosClave: [
@@ -82,7 +84,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '0' },
       { label: 'Distancia al Sol', valor: '57,9 millones de km' }
     ],
-    coords: { lat: -41.130096, lng: -73.027152 }
+    coords: { lat: -41.130102, lng: -73.027348 }
   },
 
   venus: {
@@ -100,6 +102,7 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.3912,
     distanciaRealSol: 108.2,
     distanciaModeloSol: 34.98,
+    rumbo: 187.62,
     lunas: [],
     descripcion: 'Venus es a menudo llamado el "planeta gemelo" de la Tierra por su tamaño similar, pero en realidad es un mundo radicalmente diferente. Su densa atmósfera de dióxido de carbono crea un efecto invernadero tan extremo que la temperatura superficial supera los 465 °C, más caliente que Mercurio a pesar de estar más lejos del Sol. Venus gira en dirección opuesta a la mayoría de los planetas (rotación retrógrada), y un día venusiano dura más que su propio año. La presión atmosférica en su superficie es 90 veces mayor que en la Tierra, equivalente a estar a 900 metros de profundidad en el océano.',
     datosClave: [
@@ -110,7 +113,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '0' },
       { label: 'Distancia al Sol', valor: '108,2 millones de km' }
     ],
-    coords: { lat: -41.130188, lng: -73.027001 }
+    coords: { lat: -41.130246, lng: -73.027383 }
   },
 
   tierra: {
@@ -128,6 +131,7 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.4119,
     distanciaRealSol: 149.6,
     distanciaModeloSol: 48.36,
+    rumbo: 187.22,
     lunas: [
       {
         nombre: 'Luna',
@@ -147,7 +151,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '1 (Luna)' },
       { label: 'Distancia al Sol', valor: '149,6 millones de km (1 UA)' }
     ],
-    coords: { lat: -41.130264, lng: -73.026877 }
+    coords: { lat: -41.130366, lng: -73.027400 }
   },
 
   marte: {
@@ -165,6 +169,7 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.2191,
     distanciaRealSol: 227.9,
     distanciaModeloSol: 73.67,
+    rumbo: 187.18,
     lunas: [
       {
         nombre: 'Fobos',
@@ -192,7 +197,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas', valor: '2 (Fobos y Deimos)' },
       { label: 'Distancia al Sol', valor: '227,9 millones de km' }
     ],
-    coords: { lat: -41.130408, lng: -73.026643 }
+    coords: { lat: -41.130592, lng: -73.027437 }
   },
 
   jupiter: {
@@ -207,9 +212,10 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/jupiter-marble-pia22946-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
     diametroReal: 139820,
-    diametroModelo: 4.519,
+    diametroModelo: 4.52,
     distanciaRealSol: 778.5,
-    distanciaModeloSol: 251.7,
+    distanciaModeloSol: 251.67,
+    rumbo: 183.08,
     lunas: [
       {
         nombre: 'Ío',
@@ -253,7 +259,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '95' },
       { label: 'Distancia al Sol', valor: '778,5 millones de km' }
     ],
-    coords: { lat: -41.131417, lng: -73.024996 }
+    coords: { lat: -41.132195, lng: -73.027489 }
   },
 
   saturno: {
@@ -268,9 +274,10 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2023/05/saturn-farewell-pia21345-sse-banner-1920x640-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
     diametroReal: 116460,
-    diametroModelo: 3.766,
+    diametroModelo: 3.7649,
     distanciaRealSol: 1432,
-    distanciaModeloSol: 463.3,
+    distanciaModeloSol: 462.93,
+    rumbo: 180.14,
     lunas: [
       {
         nombre: 'Titán',
@@ -290,7 +297,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '146' },
       { label: 'Distancia al Sol', valor: '1.432 millones de km' }
     ],
-    coords: { lat: -41.132618, lng: -73.023037 }
+    coords: { lat: -41.134098, lng: -73.027341 }
   },
 
   urano: {
@@ -305,9 +312,10 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/uranus-pia18182-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
     diametroReal: 50724,
-    diametroModelo: 1.640,
+    diametroModelo: 1.6398,
     distanciaRealSol: 2877,
-    distanciaModeloSol: 930.1,
+    distanciaModeloSol: 930.06,
+    rumbo: 175.99,
     lunas: [
       { nombre: 'Ariel', diametroReal: 1158, diametroModelo: 0.03743, distanciaReal: 190900, distanciaModelo: 6.171, descripcion: 'Luna con mezcla de cráteres y cañones.' },
       { nombre: 'Umbriel', diametroReal: 1169, diametroModelo: 0.03781, distanciaReal: 266000, distanciaModelo: 8.599, descripcion: 'Luna de superficie oscura y antigua.' },
@@ -323,7 +331,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '27' },
       { label: 'Distancia al Sol', valor: '2.867 millones de km' }
     ],
-    coords: { lat: -41.135265, lng: -73.018716 }
+    coords: { lat: -41.138278, lng: -73.026551 }
   },
 
   neptuno: {
@@ -338,9 +346,10 @@ const SISTEMA_SOLAR = {
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia01492-neptune-full-disk-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
     diametroReal: 49250,
-    diametroModelo: 1.592,
+    diametroModelo: 1.5921,
     distanciaRealSol: 4503,
-    distanciaModeloSol: 1456,
+    distanciaModeloSol: 1455.71,
+    rumbo: 170.31,
     lunas: [
       {
         nombre: 'Tritón',
@@ -351,7 +360,7 @@ const SISTEMA_SOLAR = {
         descripcion: 'Una de las lunas más fascinantes del sistema solar. Orbita a Neptuno en dirección contraria a la rotación del planeta (órbita retrógrada), lo que sugiere que fue capturada del Cinturón de Kuiper. Tiene géiseres activos de nitrógeno y su órbita está decayendo gradualmente: en aproximadamente 3.600 millones de años, será destruida por las fuerzas de marea de Neptuno.'
       }
     ],
-    descripcion: 'Neptuno es el planeta más lejano del sistema solar, situado a más de 4.500 millones de kilómetros del Sol. Con velocidades de viento que pueden superar los 2.100 km/h, alberga las tormentas más violentas del sistema solar. La sonda Voyager 2 es la única nave espacial que ha visitado Neptuno, en 1989, y tardó 12 años en llegar allí. Neptuno fue el primer planeta descubierto mediante predicciones matemáticas, antes de ser observado directamente en 1846. En este modelo a escala, Neptuno está a 1.456 metros del Sol, en el extremo de la costanera.',
+    descripcion: 'Neptuno es el planeta más lejano del sistema solar, situado a más de 4.500 millones de kilómetros del Sol. Con velocidades de viento que pueden superar los 2.100 km/h, alberga las tormentas más violentas del sistema solar. La sonda Voyager 2 es la única nave espacial que ha visitado Neptuno, en 1989, y tardó 12 años en llegar allí. Neptuno fue el primer planeta descubierto mediante predicciones matemáticas, antes de ser observado directamente en 1846. En este modelo a escala, Neptuno está a 1.455 metros del Sol, al extremo sur de la costanera.',
     datosClave: [
       { label: 'Período orbital', valor: '165 años terrestres' },
       { label: 'Velocidad del viento', valor: 'hasta 2.100 km/h' },
@@ -360,7 +369,7 @@ const SISTEMA_SOLAR = {
       { label: 'Lunas conocidas', valor: '16' },
       { label: 'Distancia al Sol', valor: '4.495 millones de km' }
     ],
-    coords: { lat: -41.138249, lng: -73.013850 }
+    coords: { lat: -41.142839, lng: -73.024401 }
   }
 };
 
