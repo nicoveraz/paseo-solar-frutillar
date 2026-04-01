@@ -1,18 +1,20 @@
 'use strict';
 
 // ar-view.js
-// Cada carta se posiciona a VISUAL_DIST metros en la dirección de brújula
-// hacia el planeta, usando la posición GPS real del usuario.
-// Los entities NO usan gps-entity-place — se colocan directamente en
-// coordenadas de escena (origin = inicio sesión) para garantizar visibilidad
-// sin importar la distancia real a la costanera.
+// Posicionamiento en tiempo real mediante un componente A-Frame que corre
+// en cada frame (tick). El bearing se recalcula continuamente a partir del
+// GPS del usuario y la posición del planeta en la costanera.
 // buildARScene() es global — invocado desde ar.html.
 
-const VISUAL_DIST = 8;   // metros visuales fijos en escena
-const _arMap      = {};  // id → { entity, distEl }
-let   _watchId    = null;
+/* ── Constantes ─────────────────────────────────────────────────── */
+const VISUAL_DIST = 8;   // metros fijos en escena
 
-/* ── Haversine ─────────────────────────────────────────────────── */
+/* ── GPS compartido entre watchPosition y el componente ────────── */
+let _gpsLat     = null;
+let _gpsLng     = null;
+let _gpsWatchId = null;
+
+/* ── Haversine ──────────────────────────────────────────────────── */
 function _dist(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -31,14 +33,58 @@ function _bearing(lat1, lon1, lat2, lon2) {
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
-/* ── buildARScene ─────────────────────────────────────────────── */
+function _fmtDist(m) {
+  return m < 1000 ? m.toFixed(0) + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0) + ' km';
+}
+
+/* ── Componente A-Frame: actualiza posición cada frame ─────────── */
+// Registrar ANTES de crear la escena
+if (typeof AFRAME !== 'undefined' && !AFRAME.components['ar-compass-target']) {
+  AFRAME.registerComponent('ar-compass-target', {
+    schema: {
+      lat: { type: 'float' },
+      lng: { type: 'float' }
+    },
+
+    init() {
+      this._lastDistUpdate = 0;
+    },
+
+    tick(time) {
+      if (_gpsLat === null) return;
+
+      // Posición de la cámara en espacio de escena (actualizada por gps-camera)
+      const camEl = this.el.sceneEl.cameraEl;
+      if (!camEl) return;
+      const cp = camEl.object3D.position;
+
+      // Bearing desde usuario hacia el planeta
+      const brg = _bearing(_gpsLat, _gpsLng, this.data.lat, this.data.lng);
+      const rad = brg * Math.PI / 180;
+
+      // Mover entidad a VISUAL_DIST metros en la dirección correcta
+      this.el.object3D.position.x = cp.x + Math.sin(rad) * VISUAL_DIST;
+      this.el.object3D.position.z = cp.z - Math.cos(rad) * VISUAL_DIST;
+
+      // Actualizar texto de distancia cada 2 s (solo si hay referencia)
+      if (this.el._distEl && time - this._lastDistUpdate > 2000) {
+        this._lastDistUpdate = time;
+        const d = _dist(_gpsLat, _gpsLng, this.data.lat, this.data.lng);
+        this.el._distEl.setAttribute('value', _fmtDist(d) + ' de aquí');
+      }
+    }
+  });
+}
+
+/* ── buildARScene ───────────────────────────────────────────────── */
 function buildARScene(planetaActual) {
   const wrapper = document.getElementById('ar-scene-wrapper');
   if (!wrapper) return;
 
   wrapper.innerHTML = '';
-  Object.keys(_arMap).forEach(k => delete _arMap[k]);
-  if (_watchId !== null) { navigator.geolocation.clearWatch(_watchId); _watchId = null; }
+  _gpsLat = null;
+  _gpsLng = null;
+  if (_gpsWatchId !== null) { navigator.geolocation.clearWatch(_gpsWatchId); _gpsWatchId = null; }
 
   /* Escena */
   const scene = document.createElement('a-scene');
@@ -51,7 +97,7 @@ function buildARScene(planetaActual) {
   scene.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;';
   scene.appendChild(document.createElement('a-assets'));
 
-  /* Cámara — gps-camera para orientación + brújula */
+  /* Cámara GPS (orientación + tracking) */
   const camera = document.createElement('a-camera');
   camera.setAttribute('gps-camera',      '');
   camera.setAttribute('rotation-reader', '');
@@ -64,22 +110,19 @@ function buildARScene(planetaActual) {
   light.setAttribute('type', 'ambient'); light.setAttribute('color', '#fff'); light.setAttribute('intensity', '1');
   scene.appendChild(light);
 
-  /* Crear entidades en posición inicial (8 m al norte) — serán
-     reposicionadas cuando llegue el GPS */
+  /* Crear entidades — posición inicial en abanico al norte hasta que llegue GPS */
   ORDEN_PLANETAS.forEach((id, i) => {
     const p = SISTEMA_SOLAR[id];
     if (!p.coords) return;
-    const isPrimary = id === planetaActual.id;
 
-    // Posición inicial: distribuidas en abanico al norte para que al menos
-    // algo sea visible mientras espera el GPS
-    const initAngle = (i / ORDEN_PLANETAS.length) * 120 - 60; // -60° … +60°
-    const ix = VISUAL_DIST * Math.sin(initAngle * Math.PI / 180);
-    const iz = -VISUAL_DIST * Math.cos(initAngle * Math.PI / 180);
+    const angle = (i / ORDEN_PLANETAS.length) * 140 - 70; // -70° … +70°
+    const ix = VISUAL_DIST * Math.sin(angle * Math.PI / 180);
+    const iz = -VISUAL_DIST * Math.cos(angle * Math.PI / 180);
 
-    const entity = _buildCard(p, planetaActual, isPrimary, ix, iz);
+    const entity = _buildCard(p, id === planetaActual.id, ix, iz);
+    // Registrar componente de posicionamiento en tiempo real
+    entity.setAttribute('ar-compass-target', `lat: ${p.coords.lat}; lng: ${p.coords.lng}`);
     scene.appendChild(entity);
-    _arMap[id] = entity;
   });
 
   wrapper.appendChild(scene);
@@ -88,41 +131,27 @@ function buildARScene(planetaActual) {
     if (el) el.style.display = 'none';
   });
 
-  /* GPS watch — reposiciona en tiempo real */
+  /* GPS watch — actualiza estado compartido (el tick lo lee cada frame) */
   if ('geolocation' in navigator) {
-    _watchId = navigator.geolocation.watchPosition(
-      pos => _reposition(pos.coords.latitude, pos.coords.longitude),
-      err => console.warn('AR GPS:', err.message),
-      { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+    _gpsWatchId = navigator.geolocation.watchPosition(
+      pos => { _gpsLat = pos.coords.latitude; _gpsLng = pos.coords.longitude; },
+      err  => console.warn('AR GPS:', err.message),
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
     );
   }
 }
 
-/* Calcula la posición de escena para cada planeta y actualiza */
-function _reposition(userLat, userLng) {
-  ORDEN_PLANETAS.forEach(id => {
-    const entity = _arMap[id];
-    if (!entity) return;
-    const p = SISTEMA_SOLAR[id];
-    if (!p.coords) return;
-
-    const brg = _bearing(userLat, userLng, p.coords.lat, p.coords.lng);
-    const x   = (VISUAL_DIST * Math.sin(brg * Math.PI / 180)).toFixed(2);
-    const z   = (-VISUAL_DIST * Math.cos(brg * Math.PI / 180)).toFixed(2);
-    entity.setAttribute('position', `${x} 0 ${z}`);
-  });
-}
-
-/* ── Construye una entidad (carta o marcador) ─────────────────── */
-function _buildCard(planeta, planetaActual, isPrimary, ix, iz) {
+/* ── Construye la entidad (carta principal o marcador secundario) ─ */
+function _buildCard(planeta, isPrimary, ix, iz) {
   const entity = document.createElement('a-entity');
   entity.setAttribute('position', `${ix.toFixed(2)} 0 ${iz.toFixed(2)}`);
-  entity.setAttribute('look-at',  '[gps-camera]');
+  entity.setAttribute('look-at', '[gps-camera]');
 
   if (isPrimary) {
-    const W = 2.5, H = 1.2, Y = 2.0;
+    /* ── Carta completa ─────────────────────────────────────────── */
+    const W = 2.5, H = 1.55, Y = 2.1;
 
-    /* Fondo */
+    // Fondo
     const bg = document.createElement('a-plane');
     bg.setAttribute('width',    W.toString());
     bg.setAttribute('height',   H.toString());
@@ -133,7 +162,7 @@ function _buildCard(planeta, planetaActual, isPrimary, ix, iz) {
       'property: material.opacity; from: 0.87; to: 0.95; dir: alternate; dur: 2500; loop: true; easing: easeInOutSine');
     entity.appendChild(bg);
 
-    /* Franja de color izquierda */
+    // Franja de color izquierda
     const strip = document.createElement('a-plane');
     strip.setAttribute('width',    '0.07');
     strip.setAttribute('height',   H.toString());
@@ -141,28 +170,28 @@ function _buildCard(planeta, planetaActual, isPrimary, ix, iz) {
     strip.setAttribute('position', `${-(W / 2 - 0.035)} ${Y} 0.01`);
     entity.appendChild(strip);
 
-    /* Nombre */
+    // Nombre del planeta
     const nameEl = document.createElement('a-text');
     nameEl.setAttribute('value',    planeta.nombre);
     nameEl.setAttribute('color',    planeta.color);
     nameEl.setAttribute('align',    'left');
     nameEl.setAttribute('width',    '2.4');
-    nameEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y + 0.36} 0.02`);
+    nameEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y + 0.52} 0.02`);
     entity.appendChild(nameEl);
 
-    /* Datos reales: distancia al Sol + diámetro */
+    // Datos reales: distancia al Sol + diámetro
     const realLine = planeta.id === 'sol'
       ? '\u2300 1.392.000 km'
       : `${planeta.distanciaRealSol.toLocaleString('es-CL')} M km  \u00b7  \u2300 ${planeta.diametroReal.toLocaleString('es-CL')} km`;
     const realEl = document.createElement('a-text');
     realEl.setAttribute('value',    realLine);
-    realEl.setAttribute('color',    '#e0e0f0');
+    realEl.setAttribute('color',    '#dde0f5');
     realEl.setAttribute('align',    'left');
     realEl.setAttribute('width',    '2.2');
-    realEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y + 0.10} 0.02`);
+    realEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y + 0.24} 0.02`);
     entity.appendChild(realEl);
 
-    /* Datos en modelo (amarillo) */
+    // Datos en modelo (amarillo)
     const modelLine = planeta.id === 'sol'
       ? 'Modelo: \u2300 45 cm'
       : `Modelo: ${planeta.distanciaModeloSol.toFixed(1)} m  \u00b7  \u2300 ${formatearDiametro(planeta.diametroModelo)}`;
@@ -171,16 +200,26 @@ function _buildCard(planeta, planetaActual, isPrimary, ix, iz) {
     modelEl.setAttribute('color',    '#fdb813');
     modelEl.setAttribute('align',    'left');
     modelEl.setAttribute('width',    '2.2');
-    modelEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y - 0.18} 0.02`);
+    modelEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y - 0.06} 0.02`);
     entity.appendChild(modelEl);
 
-    /* Línea vertical al suelo */
+    // Distancia real del usuario — actualizada en tiempo real por tick
+    const distEl = document.createElement('a-text');
+    distEl.setAttribute('value',    'Obteniendo GPS\u2026');
+    distEl.setAttribute('color',    '#88bbff');
+    distEl.setAttribute('align',    'left');
+    distEl.setAttribute('width',    '2.2');
+    distEl.setAttribute('position', `${-(W / 2 - 0.18)} ${Y - 0.38} 0.02`);
+    entity.appendChild(distEl);
+    entity._distEl = distEl;  // referencia para el componente tick
+
+    // Línea vertical al suelo
     const vline = document.createElement('a-entity');
     vline.setAttribute('line',
       `start: 0 0.01 0; end: 0 ${Y - H / 2 - 0.04} 0; color: ${planeta.color}; opacity: 0.5`);
     entity.appendChild(vline);
 
-    /* Punto en el suelo */
+    // Punto en el suelo
     const gdot = document.createElement('a-circle');
     gdot.setAttribute('radius',   '0.18');
     gdot.setAttribute('color',    planeta.color);
@@ -190,7 +229,7 @@ function _buildCard(planeta, planetaActual, isPrimary, ix, iz) {
     entity.appendChild(gdot);
 
   } else {
-    /* ── Marcador pequeño tapable ─────────────────────────────── */
+    /* ── Marcador pequeño tapable ───────────────────────────────── */
     const dotY = 1.5;
 
     const dot = document.createElement('a-circle');
@@ -229,7 +268,7 @@ function _buildCard(planeta, planetaActual, isPrimary, ix, iz) {
   return entity;
 }
 
-/* ── Brújula externa (indicador HUD opcional) ─────────────────── */
+/* ── Brújula HUD (indicador externo opcional) ───────────────────── */
 function _updateCompass(e) {
   const el = document.getElementById('compass-arrow');
   if (!el) return;
