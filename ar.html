@@ -356,7 +356,24 @@
         <div id="hud-name"></div>
       </div>
       <div id="hud-sub"></div>
-      <div id="ar-gps-status" style="font-size:0.7rem;color:#ffaa44;margin-bottom:0.5rem;min-height:1em"></div>
+      <div id="ar-gps-status" style="font-size:0.7rem;color:#ffaa44;margin-bottom:0.4rem;min-height:1em"></div>
+
+      <!-- Fila de brújula: rumbo en vivo + ajuste manual de offset -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:0.55rem">
+        <span style="font-size:0.65rem;color:rgba(180,200,255,0.55)">🧭</span>
+        <span id="ar-hdg-val" style="font-size:0.65rem;color:rgba(180,200,255,0.8);min-width:72px;flex:1">…</span>
+        <button onclick="window._adjustHeading(-10)"
+                style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+                       color:#fff;border-radius:6px;padding:2px 8px;font-size:0.7rem;cursor:pointer">−10°</button>
+        <button onclick="window._adjustHeading(+10)"
+                style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+                       color:#fff;border-radius:6px;padding:2px 8px;font-size:0.7rem;cursor:pointer">+10°</button>
+        <button onclick="window._resetHeading()"
+                style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+                       color:rgba(255,255,255,0.5);border-radius:6px;padding:2px 7px;font-size:0.7rem;cursor:pointer"
+                title="Restablecer corrección">↺</button>
+      </div>
+
       <div class="hud-row-2">
         <a id="hud-btn-prev" href="#" class="hud-btn-nav" style="display:none">
           <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>

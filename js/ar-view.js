@@ -13,13 +13,36 @@ const FOV_V = 50;   // campo visual vertical estimado (grados)
 /* ── Estado ─────────────────────────────────────────────────────── */
 let _gpsLat    = null;
 let _gpsLng    = null;
-let _heading   = 0;      // rumbo horizontal suavizado (grados, 0=Norte)
-let _pitch     = 0;      // inclinación vertical suavizada: + = mirando arriba, - = abajo
-let _watchId   = null;
-let _rafId     = null;
-let _currentId = null;
-window._currentId = null;
-const _pinMap  = {};   // id → elemento .ar-pin
+let _heading         = 0;     // rumbo horizontal suavizado (grados, 0=Norte)
+let _pitch           = 0;     // inclinación vertical suavizada: + = mirando arriba, - = abajo
+let _headingOffset   = ((parseInt(localStorage.getItem('psf_hdg_offset') || '0', 10)) % 360 + 360) % 360;
+let _usingAbsSensor  = false; // true cuando AbsoluteOrientationSensor está activo
+let _watchId         = null;
+let _rafId           = null;
+let _currentId       = null;
+window._currentId    = null;
+const _pinMap        = {};    // id → elemento .ar-pin
+
+/* ── Ajuste manual de brújula (persiste en localStorage) ─────────── */
+window._adjustHeading = function (delta) {
+  _headingOffset = ((_headingOffset + delta) % 360 + 360) % 360;
+  localStorage.setItem('psf_hdg_offset', _headingOffset);
+  _updateHdgDisplay();
+};
+window._resetHeading = function () {
+  _headingOffset = 0;
+  localStorage.removeItem('psf_hdg_offset');
+  _updateHdgDisplay();
+};
+function _updateHdgDisplay() {
+  const el = document.getElementById('ar-hdg-val');
+  if (!el) return;
+  const deg  = Math.round(_heading);
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+  const dir  = dirs[Math.round(deg / 22.5) % 16];
+  const off  = _headingOffset > 180 ? _headingOffset - 360 : _headingOffset;
+  el.textContent = `${dir} ${deg}°` + (off !== 0 ? ` [${off > 0 ? '+' : ''}${off}°]` : '');
+}
 
 /* ── Haversine ──────────────────────────────────────────────────── */
 function _dist(lat1, lon1, lat2, lon2) {
@@ -44,7 +67,7 @@ function _fmtDist(m) {
 
 /* ── Rumbo del dispositivo con filtro paso-bajo ─────────────────── */
 // alpha: 0.0 = sin movimiento, 1.0 = sin filtro. 0.08 ≈ suave pero reactivo.
-const HEADING_ALPHA = 0.08;
+const HEADING_ALPHA = 0.12;
 
 function _smoothAngle(current, raw) {
   // Diferencia mínima en el círculo (-180..+180) para evitar salto en 0°/360°
@@ -55,27 +78,65 @@ function _smoothAngle(current, raw) {
 }
 
 function _onOrientation(e) {
-  // ── Rumbo horizontal (heading) ──────────────────────────────────
-  let raw = null;
-  if (e.webkitCompassHeading != null) {
-    raw = e.webkitCompassHeading;              // iOS
-  } else if (e.absolute) {
-    raw = (360 - (e.alpha || 0)) % 360;        // Android absolute
+  // ── Rumbo horizontal — solo si AbsoluteOrientationSensor no está activo ──
+  if (!_usingAbsSensor) {
+    let raw = null;
+    if (e.webkitCompassHeading != null) {
+      raw = e.webkitCompassHeading;              // iOS
+    } else if (e.absolute) {
+      raw = (360 - (e.alpha || 0)) % 360;        // Android absolute
+    }
+    if (raw !== null) {
+      const adjusted = ((raw + _headingOffset) % 360 + 360) % 360;
+      _heading = _smoothAngle(_heading, adjusted);
+    }
   }
-  if (raw !== null) _heading = _smoothAngle(_heading, raw);
 
-  // ── Pitch vertical (beta) ───────────────────────────────────────
-  // beta=90 → teléfono vertical (cámara horizontal)
-  // beta<90 → cámara apuntando arriba; beta>90 → apuntando abajo
-  // pitch > 0 = mirando arriba, pitch < 0 = mirando abajo
+  // ── Pitch vertical (beta) — siempre desde eventos de dispositivo ──
+  // beta=90 → teléfono vertical; beta<90 → mirando arriba; beta>90 → abajo
   if (e.beta != null) {
     const rawPitch = 90 - e.beta;
-    // Filtro paso-bajo lineal (sin wrap-around: rango es -90..+90)
     _pitch += (rawPitch - _pitch) * 0.06;
   }
 }
 window.addEventListener('deviceorientationabsolute', _onOrientation);
 window.addEventListener('deviceorientation',         _onOrientation);
+
+/* ── AbsoluteOrientationSensor (sensor fusion, Chrome/Android) ───── */
+// Usa gyroscopio + acelerómetro + magnetómetro → más preciso que
+// deviceorientationabsolute. Si no está disponible, cae al evento nativo.
+async function _startCompass() {
+  _usingAbsSensor = false;
+  if (!('AbsoluteOrientationSensor' in window)) return;
+  try {
+    const perms = await Promise.all([
+      navigator.permissions.query({ name: 'accelerometer' }),
+      navigator.permissions.query({ name: 'magnetometer' }),
+      navigator.permissions.query({ name: 'gyroscope' }),
+    ]);
+    if (perms.some(p => p.state === 'denied')) return;
+
+    const sensor = new AbsoluteOrientationSensor({ frequency: 30 });
+
+    sensor.addEventListener('reading', () => {
+      if (!sensor.quaternion) return;
+      const [x, y, z, w] = sensor.quaternion;
+      // Yaw del cuaternión (rotación alrededor del eje Z = vertical)
+      // ENU frame: yaw=0 → Norte, positivo = CCW desde Norte
+      // → convertir a brújula CW: heading = (360 - yaw_deg) % 360
+      const yawDeg = Math.atan2(2*(w*z + x*y), 1 - 2*(y*y + z*z)) * 180 / Math.PI;
+      const raw    = ((360 - ((yawDeg + 360) % 360)) + _headingOffset) % 360;
+      _heading = _smoothAngle(_heading, raw);
+    });
+
+    sensor.addEventListener('error', () => {
+      _usingAbsSensor = false; // volver a eventos nativos si falla
+    });
+
+    sensor.start();
+    _usingAbsSensor = true;
+  } catch (_) { /* dispositivo no compatible — OK, usamos deviceorientation */ }
+}
 
 /* ── Tamaño aparente del modelo a escala según distancia ────────── */
 // Devuelve el diámetro en px que debería ocupar el planeta en pantalla
@@ -255,9 +316,14 @@ function _createPin(planeta) {
 }
 
 /* ── rAF loop de posicionamiento ────────────────────────────────── */
+let _loopHdgT = 0;
 function _loop() {
   _rafId = requestAnimationFrame(_loop);
   const W = window.innerWidth, H = window.innerHeight;
+
+  // Actualizar display de rumbo (~4 Hz, sin coste de layout cada frame)
+  const _now = performance.now();
+  if (_now - _loopHdgT > 250) { _loopHdgT = _now; _updateHdgDisplay(); }
 
   // Horizonte en pantalla según inclinación del teléfono.
   // Cuando pitch=0 (teléfono vertical): horizonte al centro.
@@ -409,6 +475,10 @@ async function buildARScene(initialPlanetId) {
       typeof DeviceOrientationEvent.requestPermission === 'function') {
     try { await DeviceOrientationEvent.requestPermission(); } catch (_) { /* usuario rechazó */ }
   }
+
+  // Intentar AbsoluteOrientationSensor (sensor fusion, Chrome/Android)
+  // — cae silenciosamente a deviceorientation si no está disponible
+  _startCompass();
 
   // Elemento <video> para cámara trasera
   const video = document.createElement('video');
