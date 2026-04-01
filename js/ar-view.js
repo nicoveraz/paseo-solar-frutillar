@@ -8,7 +8,7 @@
 
 /* ── Constantes ─────────────────────────────────────────────────── */
 const FOV_H = 65;   // campo visual horizontal estimado (grados)
-const FOV_V = 50;   // campo visual vertical estimado (grados)
+const FOV_V = 60;   // campo visual vertical estimado (grados, modo retrato)
 // El heading nativo apunta hacia la pantalla (cámara frontal).
 // La cámara trasera está 180° opuesta → corrección fija.
 const HEADING_BACK_CAMERA = 180;
@@ -99,7 +99,10 @@ function _onOrientation(e) {
   // beta=90 → teléfono vertical; beta<90 → mirando arriba; beta>90 → abajo
   if (e.beta != null) {
     const rawPitch = 90 - e.beta;
-    _pitch += (rawPitch - _pitch) * 0.06;
+    // Alpha alto (0.4) → tracking casi inmediato.
+    // El heading necesita suavizado fuerte (ruido magnético),
+    // el pitch no: la gravedad es una señal limpia y estable.
+    _pitch += (rawPitch - _pitch) * 0.4;
   }
 }
 window.addEventListener('deviceorientationabsolute', _onOrientation);
@@ -328,11 +331,14 @@ function _loop() {
   const _now = performance.now();
   if (_now - _loopHdgT > 250) { _loopHdgT = _now; _updateHdgDisplay(); }
 
-  // Posición vertical fija (42% desde arriba).
-  // El tilt/pitch se deshabilitó: el video de cámara no se desplaza en el DOM
-  // al inclinar el teléfono, así que mover los pines independientemente
-  // creaba un paralaje artificial.
-  const pinY = H * 0.42;
+  // Horizonte dinámico según inclinación del teléfono.
+  // _pitch > 0 = cámara apuntando arriba → horizonte baja en pantalla.
+  // _pitch < 0 = cámara apuntando abajo → horizonte sube en pantalla.
+  // Los planetas están al nivel del suelo = en el horizonte.
+  // El pitch usa alpha=0.4 (casi instantáneo) para que los pines
+  // sigan el movimiento de la cámara sin retardo perceptible.
+  const horizonY = H / 2 + _pitch * (H / FOV_V);
+  const pinY = Math.max(H * 0.05, Math.min(H * 0.90, horizonY));
 
   let leftSlot = 0, rightSlot = 0;
 
