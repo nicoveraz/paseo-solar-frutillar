@@ -7,13 +7,14 @@
 // • DOM + rAF para proyección bearing → pantalla
 
 /* ── Constantes ─────────────────────────────────────────────────── */
-const FOV_H = 65;    // campo visual horizontal estimado (grados)
-const PIN_Y = 0.44;  // posición vertical de pines (fracción de altura de pantalla)
+const FOV_H = 65;   // campo visual horizontal estimado (grados)
+const FOV_V = 50;   // campo visual vertical estimado (grados)
 
 /* ── Estado ─────────────────────────────────────────────────────── */
 let _gpsLat    = null;
 let _gpsLng    = null;
-let _heading   = 0;
+let _heading   = 0;      // rumbo horizontal suavizado (grados, 0=Norte)
+let _pitch     = 0;      // inclinación vertical suavizada: + = mirando arriba, - = abajo
 let _watchId   = null;
 let _rafId     = null;
 let _currentId = null;
@@ -54,6 +55,7 @@ function _smoothAngle(current, raw) {
 }
 
 function _onOrientation(e) {
+  // ── Rumbo horizontal (heading) ──────────────────────────────────
   let raw = null;
   if (e.webkitCompassHeading != null) {
     raw = e.webkitCompassHeading;              // iOS
@@ -61,6 +63,16 @@ function _onOrientation(e) {
     raw = (360 - (e.alpha || 0)) % 360;        // Android absolute
   }
   if (raw !== null) _heading = _smoothAngle(_heading, raw);
+
+  // ── Pitch vertical (beta) ───────────────────────────────────────
+  // beta=90 → teléfono vertical (cámara horizontal)
+  // beta<90 → cámara apuntando arriba; beta>90 → apuntando abajo
+  // pitch > 0 = mirando arriba, pitch < 0 = mirando abajo
+  if (e.beta != null) {
+    const rawPitch = 90 - e.beta;
+    // Filtro paso-bajo lineal (sin wrap-around: rango es -90..+90)
+    _pitch += (rawPitch - _pitch) * 0.06;
+  }
 }
 window.addEventListener('deviceorientationabsolute', _onOrientation);
 window.addEventListener('deviceorientation',         _onOrientation);
@@ -246,7 +258,14 @@ function _createPin(planeta) {
 function _loop() {
   _rafId = requestAnimationFrame(_loop);
   const W = window.innerWidth, H = window.innerHeight;
-  const pinY = H * PIN_Y;
+
+  // Horizonte en pantalla según inclinación del teléfono.
+  // Cuando pitch=0 (teléfono vertical): horizonte al centro.
+  // Inclinar hacia abajo (pitch<0): horizonte sube en pantalla.
+  // Inclinar hacia arriba (pitch>0): horizonte baja en pantalla.
+  // Los planetas están a nivel del suelo → se ubican en el horizonte.
+  const horizonY = H / 2 + _pitch * (H / FOV_V);
+  const pinY = Math.max(H * 0.08, Math.min(H * 0.88, horizonY));
 
   let leftSlot = 0, rightSlot = 0;
 
