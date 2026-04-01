@@ -65,8 +65,9 @@ window.arSelectPlanet = function (id) {
   ORDEN_PLANETAS.forEach(pid => {
     const e = _arMap[pid];
     if (!e) return;
-    e.cardEl.setAttribute('visible',   pid === id ? 'true' : 'false');
-    e.markerEl.setAttribute('visible', pid !== id ? 'true' : 'false');
+    // object3D.visible es más fiable que setAttribute después del attach
+    if (e.cardEl.object3D)   e.cardEl.object3D.visible   = pid === id;
+    if (e.markerEl.object3D) e.markerEl.object3D.visible = pid !== id;
   });
   _updateHUD(SISTEMA_SOLAR[id]);
 };
@@ -175,16 +176,13 @@ function buildARScene(initialPlanetId) {
     entity.setAttribute('look-at',  '[gps-camera]');
     entity.setAttribute('ar-compass-target', `lat: ${p.coords.lat}; lng: ${p.coords.lng}`);
 
-    // Carta (visible cuando está seleccionado)
+    // Carta + marcador — visibilidad inicial aplicada en scene 'loaded'
     const { el: cardEl, distEl } = _buildCard(p);
-    cardEl.setAttribute('visible', id === startId ? 'true' : 'false');
     entity.appendChild(cardEl);
     entity.cardEl  = cardEl;
     entity._distEl = distEl;  // para el tick
 
-    // Marcador (visible cuando no está seleccionado)
     const markerEl = _buildMarker(p);
-    markerEl.setAttribute('visible', id !== startId ? 'true' : 'false');
     entity.appendChild(markerEl);
     entity.markerEl = markerEl;
 
@@ -194,6 +192,13 @@ function buildARScene(initialPlanetId) {
 
   wrapper.appendChild(scene);
   scene.addEventListener('loaded', () => {
+    // Aplicar visibilidad inicial DESPUÉS de que object3D esté listo
+    ORDEN_PLANETAS.forEach(id => {
+      const e = _arMap[id];
+      if (!e) return;
+      if (e.cardEl.object3D)   e.cardEl.object3D.visible   = id === startId;
+      if (e.markerEl.object3D) e.markerEl.object3D.visible = id !== startId;
+    });
     const el = document.getElementById('ar-loading');
     if (el) el.style.display = 'none';
   });
