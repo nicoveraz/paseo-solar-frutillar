@@ -7,8 +7,6 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="css/styles.css" />
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar-nft.js"></script>
   <style>
     body { margin: 0; overflow: hidden; background: #000; }
 
@@ -44,7 +42,142 @@
     #ar-scene-wrapper {
       display: none; position: fixed; inset: 0; z-index: 1;
     }
-    #ar-scene-wrapper a-scene { width: 100% !important; height: 100% !important; }
+
+    /* ── Camera video background ── */
+    #ar-video {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      background: #000;
+    }
+
+    /* ── Overlay for AR pins ── */
+    #ar-overlay {
+      position: fixed; inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* ── Pin base ── */
+    .ar-pin {
+      position: absolute;
+      pointer-events: auto;
+      cursor: pointer;
+      --pc: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      will-change: left, top, transform;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── Info card (visible solo cuando está seleccionado + en vista) ── */
+    .ar-pin-card {
+      display: none;
+      background: rgba(8,8,24,0.92);
+      border: 1px solid var(--pc);
+      border-radius: 10px;
+      padding: 0 0 0.6rem;
+      min-width: 170px;
+      max-width: 210px;
+      margin-bottom: 6px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+    }
+    .ar-pin.ar-selected:not(.ar-at-edge) .ar-pin-card { display: block; }
+
+    .ar-pin-card-bar {
+      height: 4px;
+      background: var(--pc);
+      margin-bottom: 0.5rem;
+    }
+    .ar-pin-card-name {
+      font-weight: 700; font-size: 0.9rem;
+      color: var(--pc);
+      padding: 0 0.7rem; margin-bottom: 0.2rem;
+    }
+    .ar-pin-card-real {
+      font-size: 0.7rem; color: #dde0f5;
+      padding: 0 0.7rem; margin-bottom: 0.15rem;
+    }
+    .ar-pin-card-model {
+      font-size: 0.7rem; color: #fdb813;
+      padding: 0 0.7rem;
+    }
+
+    /* ── Pin visual (cabeza + tallo) ── */
+    .ar-pin-visual {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .ar-pin-head {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--pc);
+      box-shadow: 0 0 10px var(--pc), 0 0 4px rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+    .ar-pin.ar-selected .ar-pin-head {
+      width: 26px; height: 26px;
+      box-shadow: 0 0 20px var(--pc), 0 0 5px rgba(0,0,0,0.5);
+    }
+    .ar-pin-stem {
+      width: 2px; height: 26px;
+      background: linear-gradient(to bottom, var(--pc), transparent);
+    }
+
+    /* ── Etiquetas bajo el pin ── */
+    .ar-pin-labels {
+      display: flex; flex-direction: column; align-items: center;
+      margin-top: 3px;
+    }
+    .ar-pin-name-lbl {
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7);
+      white-space: nowrap;
+    }
+    .ar-pin-dist {
+      font-size: 0.62rem; color: rgba(180,200,255,0.9);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    }
+
+    /* ── En el borde: ocultar el pin, mostrar la píldora ── */
+    .ar-pin.ar-at-edge .ar-pin-card,
+    .ar-pin.ar-at-edge .ar-pin-visual,
+    .ar-pin.ar-at-edge .ar-pin-labels { display: none; }
+
+    /* ── Píldora de borde ── */
+    .ar-edge-pill {
+      display: none;
+      align-items: center; gap: 4px;
+      background: rgba(8,8,24,0.88);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px;
+      padding: 5px 9px 5px 6px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+    .ar-pin.ar-at-edge .ar-edge-pill { display: flex; }
+    .ar-pin.ar-selected.ar-at-edge .ar-edge-pill {
+      border-color: var(--pc);
+      background: rgba(8,8,24,0.96);
+      box-shadow: 0 0 10px var(--pc)44;
+    }
+    .ar-edge-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--pc);
+      box-shadow: 0 0 6px var(--pc);
+      flex-shrink: 0;
+    }
+    .ar-edge-chevron { font-size: 9px; color: rgba(255,255,255,0.6); }
+    .ar-edge-name    { font-size: 0.72rem; font-weight: 600; color: #fff; }
+    .ar-edge-dist    { font-size: 0.62rem; color: rgba(180,200,255,0.8); margin-left: 2px; }
 
     /* Back button — always on top */
     #ar-back-btn {
