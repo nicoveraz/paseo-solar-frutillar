@@ -98,7 +98,7 @@ function _onOrientation(e) {
   // ── Pitch vertical (beta) — siempre desde eventos de dispositivo ──
   // beta=90 → teléfono vertical; beta<90 → mirando arriba; beta>90 → abajo
   if (e.beta != null) {
-    const rawPitch = 90 - e.beta;
+    const rawPitch = e.beta - 90; // beta>90 = cámara mirando arriba → horizonte baja → pitch positivo
     // Alpha alto (0.4) → tracking casi inmediato.
     // El heading necesita suavizado fuerte (ruido magnético),
     // el pitch no: la gravedad es una señal limpia y estable.
