@@ -115,18 +115,28 @@
       display: flex; flex-direction: column; align-items: center;
     }
     .ar-pin-head {
-      width: 20px; height: 20px;
+      width: 48px; height: 48px;
       border-radius: 50%;
-      background: var(--pc);
-      box-shadow: 0 0 10px var(--pc), 0 0 4px rgba(0,0,0,0.5);
-      border: 2px solid rgba(255,255,255,0.4);
+      background: rgba(4,4,16,0.55);
+      box-shadow: 0 0 14px var(--pc), 0 0 5px rgba(0,0,0,0.6);
+      border: 2px solid var(--pc);
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ar-pin-head img {
+      width: 90%; height: 90%;
+      object-fit: contain;
+      border-radius: 50%;
+      pointer-events: none;
     }
     .ar-pin.ar-selected .ar-pin-head {
-      width: 26px; height: 26px;
-      box-shadow: 0 0 20px var(--pc), 0 0 5px rgba(0,0,0,0.5);
+      width: 62px; height: 62px;
+      box-shadow: 0 0 24px var(--pc), 0 0 8px rgba(0,0,0,0.6);
+      border-width: 2.5px;
     }
     .ar-pin-stem {
-      width: 2px; height: 26px;
+      width: 2px; height: 30px;
       background: linear-gradient(to bottom, var(--pc), transparent);
     }
 

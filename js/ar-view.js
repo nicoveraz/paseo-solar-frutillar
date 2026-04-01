@@ -207,7 +207,11 @@ function _createPin(planeta) {
       <div class="ar-pin-card-model">${modelLine}</div>
     </div>
     <div class="ar-pin-visual">
-      <div class="ar-pin-head"></div>
+      <div class="ar-pin-head">
+        <img src="${planeta.imagen}"
+             onerror="this.onerror=null;this.src='${planeta.imagenFallback}'"
+             alt="${planeta.nombre}" draggable="false">
+      </div>
       <div class="ar-pin-stem"></div>
     </div>
     <div class="ar-pin-labels">
