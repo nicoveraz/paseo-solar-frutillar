@@ -9,6 +9,9 @@
 /* ── Constantes ─────────────────────────────────────────────────── */
 const FOV_H = 65;   // campo visual horizontal estimado (grados)
 const FOV_V = 50;   // campo visual vertical estimado (grados)
+// El heading nativo apunta hacia la pantalla (cámara frontal).
+// La cámara trasera está 180° opuesta → corrección fija.
+const HEADING_BACK_CAMERA = 180;
 
 /* ── Estado ─────────────────────────────────────────────────────── */
 let _gpsLat    = null;
@@ -87,7 +90,7 @@ function _onOrientation(e) {
       raw = (360 - (e.alpha || 0)) % 360;        // Android absolute
     }
     if (raw !== null) {
-      const adjusted = ((raw + _headingOffset) % 360 + 360) % 360;
+      const adjusted = ((raw + HEADING_BACK_CAMERA + _headingOffset) % 360 + 360) % 360;
       _heading = _smoothAngle(_heading, adjusted);
     }
   }
@@ -125,7 +128,7 @@ async function _startCompass() {
       // ENU frame: yaw=0 → Norte, positivo = CCW desde Norte
       // → convertir a brújula CW: heading = (360 - yaw_deg) % 360
       const yawDeg = Math.atan2(2*(w*z + x*y), 1 - 2*(y*y + z*z)) * 180 / Math.PI;
-      const raw    = ((360 - ((yawDeg + 360) % 360)) + _headingOffset) % 360;
+      const raw    = ((360 - ((yawDeg + 360) % 360)) + HEADING_BACK_CAMERA + _headingOffset) % 360;
       _heading = _smoothAngle(_heading, raw);
     });
 
