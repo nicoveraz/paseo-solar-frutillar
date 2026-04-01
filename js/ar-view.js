@@ -328,13 +328,11 @@ function _loop() {
   const _now = performance.now();
   if (_now - _loopHdgT > 250) { _loopHdgT = _now; _updateHdgDisplay(); }
 
-  // Horizonte en pantalla según inclinación del teléfono.
-  // Cuando pitch=0 (teléfono vertical): horizonte al centro.
-  // Inclinar hacia abajo (pitch<0): horizonte sube en pantalla.
-  // Inclinar hacia arriba (pitch>0): horizonte baja en pantalla.
-  // Los planetas están a nivel del suelo → se ubican en el horizonte.
-  const horizonY = H / 2 + _pitch * (H / FOV_V);
-  const pinY = Math.max(H * 0.08, Math.min(H * 0.88, horizonY));
+  // Posición vertical fija (42% desde arriba).
+  // El tilt/pitch se deshabilitó: el video de cámara no se desplaza en el DOM
+  // al inclinar el teléfono, así que mover los pines independientemente
+  // creaba un paralaje artificial.
+  const pinY = H * 0.42;
 
   let leftSlot = 0, rightSlot = 0;
 
