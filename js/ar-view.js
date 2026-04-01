@@ -41,13 +41,26 @@ function _fmtDist(m) {
   return m < 1000 ? m.toFixed(0) + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0) + ' km';
 }
 
-/* ── Rumbo del dispositivo ──────────────────────────────────────── */
+/* ── Rumbo del dispositivo con filtro paso-bajo ─────────────────── */
+// alpha: 0.0 = sin movimiento, 1.0 = sin filtro. 0.08 ≈ suave pero reactivo.
+const HEADING_ALPHA = 0.08;
+
+function _smoothAngle(current, raw) {
+  // Diferencia mínima en el círculo (-180..+180) para evitar salto en 0°/360°
+  let diff = raw - current;
+  if (diff >  180) diff -= 360;
+  if (diff < -180) diff += 360;
+  return (current + diff * HEADING_ALPHA + 360) % 360;
+}
+
 function _onOrientation(e) {
+  let raw = null;
   if (e.webkitCompassHeading != null) {
-    _heading = e.webkitCompassHeading;              // iOS (0=N, sentido horario)
+    raw = e.webkitCompassHeading;              // iOS
   } else if (e.absolute) {
-    _heading = (360 - (e.alpha || 0)) % 360;        // Android absolute (convertir CCW a CW)
+    raw = (360 - (e.alpha || 0)) % 360;        // Android absolute
   }
+  if (raw !== null) _heading = _smoothAngle(_heading, raw);
 }
 window.addEventListener('deviceorientationabsolute', _onOrientation);
 window.addEventListener('deviceorientation',         _onOrientation);
