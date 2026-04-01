@@ -65,6 +65,19 @@ function _onOrientation(e) {
 window.addEventListener('deviceorientationabsolute', _onOrientation);
 window.addEventListener('deviceorientation',         _onOrientation);
 
+/* ── Tamaño aparente del modelo a escala según distancia ────────── */
+// Devuelve el diámetro en px que debería ocupar el planeta en pantalla
+// si el usuario está a `distMeters` metros de él.
+function _apparentPx(planeta, distMeters) {
+  const MIN_PX  = 44;
+  const MAX_PX  = Math.round(Math.min(window.innerWidth, window.innerHeight) * 0.60);
+  const FOV_RAD = FOV_H * Math.PI / 180;
+  const diamM   = planeta.diametroModelo / 100;            // cm → m
+  const dist    = Math.max(distMeters, 0.05);              // evitar div/0
+  const px      = (diamM / dist) * (window.innerWidth / FOV_RAD);
+  return Math.max(MIN_PX, Math.min(MAX_PX, Math.round(px)));
+}
+
 /* ── Proyección: bearing → posición X en pantalla ──────────────── */
 function _project(bearing) {
   let diff = ((bearing - _heading) + 360) % 360;
@@ -243,10 +256,11 @@ function _loop() {
     const p = SISTEMA_SOLAR[id];
     if (!p || !p.coords) return;
 
-    // Actualizar distancia
+    // Calcular distancia GPS (se reutiliza para etiqueta + tamaño aparente)
+    let distM = null;
     if (_gpsLat !== null) {
-      const d = _dist(_gpsLat, _gpsLng, p.coords.lat, p.coords.lng);
-      const t = _fmtDist(d);
+      distM = _dist(_gpsLat, _gpsLng, p.coords.lat, p.coords.lng);
+      const t  = _fmtDist(distM);
       const de  = pin.querySelector('.ar-pin-dist');
       const ede = pin.querySelector('.ar-edge-dist');
       if (de)  de.textContent  = t;
@@ -273,6 +287,10 @@ function _loop() {
       pin.style.top       = pinY + 'px';
       pin.style.transform = 'translate(-50%, -100%)';
       pin.classList.remove('ar-at-edge');
+      // Tamaño aparente según distancia real al modelo a escala
+      if (distM !== null) {
+        pin.style.setProperty('--ps', _apparentPx(p, distM) + 'px');
+      }
     } else if (diff < 0) {
       // Fuera de vista a la izquierda — apilar verticalmente
       const slotY = H * 0.22 + leftSlot * 50;

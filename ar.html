@@ -115,7 +115,7 @@
       display: flex; flex-direction: column; align-items: center;
     }
     .ar-pin-head {
-      width: 48px; height: 48px;
+      width: var(--ps, 48px); height: var(--ps, 48px);
       border-radius: 50%;
       background: rgba(4,4,16,0.55);
       box-shadow: 0 0 14px var(--pc), 0 0 5px rgba(0,0,0,0.6);
@@ -123,6 +123,7 @@
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      transition: width 0.5s ease, height 0.5s ease, box-shadow 0.5s ease;
     }
     .ar-pin-head img {
       width: 90%; height: 90%;
@@ -131,8 +132,10 @@
       pointer-events: none;
     }
     .ar-pin.ar-selected .ar-pin-head {
-      width: 62px; height: 62px;
-      box-shadow: 0 0 24px var(--pc), 0 0 8px rgba(0,0,0,0.6);
+      /* seleccionado: 30% más grande que el tamaño aparente calculado */
+      width: calc(var(--ps, 48px) * 1.3);
+      height: calc(var(--ps, 48px) * 1.3);
+      box-shadow: 0 0 28px var(--pc), 0 0 8px rgba(0,0,0,0.6);
       border-width: 2.5px;
     }
     .ar-pin-stem {
