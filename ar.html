@@ -120,16 +120,8 @@
     <div class="ar-permiso-icon">
       <span class="material-symbols-outlined" style="font-size:48px;color:var(--text-2)">view_in_ar</span>
     </div>
-    <h2>Realidad aumentada</h2>
-    <p id="ar-intro-text">Apunta tu teléfono a lo largo de la costanera para ver los planetas en su posición exacta.</p>
-
-    <div class="ar-planet-chip" id="ar-planet-chip" style="display:none">
-      <div class="ar-planet-chip-dot" id="chip-dot"></div>
-      <div>
-        <div class="ar-planet-chip-name" id="chip-name"></div>
-        <div class="ar-planet-chip-sub"  id="chip-sub"></div>
-      </div>
-    </div>
+    <h2>Sistema Solar AR</h2>
+    <p>Apunta tu teléfono al horizonte para ver los planetas en su dirección real. Navega entre ellos con los botones del HUD o tocando su marcador.</p>
 
     <ul class="permiso-lista" style="margin-bottom:1.5rem">
       <li>
@@ -155,10 +147,6 @@
         <span class="material-symbols-outlined">rocket_launch</span>
         Iniciar AR
       </button>
-      <a id="btn-volver-planeta" href="planet.html" class="btn btn-secondary" style="width:100%;justify-content:center">
-        <span class="material-symbols-outlined">arrow_back</span>
-        Información del planeta
-      </a>
     </div>
   </div>
 
@@ -179,7 +167,7 @@
         <div id="hud-name"></div>
       </div>
       <div id="hud-sub"></div>
-      <div id="hud-dist-real" style="font-size:0.72rem;color:var(--accent);margin-bottom:0.5rem;opacity:0.85"></div>
+      <div id="ar-gps-status" style="font-size:0.7rem;color:#ffaa44;margin-bottom:0.5rem;min-height:1em"></div>
       <div class="hud-row-2">
         <a id="hud-btn-prev" href="#" class="hud-btn-nav" style="display:none">
           <span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>
@@ -201,108 +189,17 @@
   <script src="js/ar-view.js"></script>
   <script>
     (function () {
-      const params    = new URLSearchParams(window.location.search);
-      const planetaId = params.get('planet') || 'tierra';
-      const planeta   = getPlaneta(planetaId);
-      if (!planeta) return;
+      const planetaId = new URLSearchParams(window.location.search).get('planet') || ORDEN_PLANETAS[0];
 
-      document.getElementById('ar-page-title').textContent      = `AR: ${planeta.nombre} — Paseo Solar Frutillar`;
-      document.getElementById('ar-back-btn').href               = `planet.html?planet=${planetaId}`;
-      document.getElementById('btn-volver-planeta').href        = `planet.html?planet=${planetaId}`;
+      document.getElementById('ar-back-btn').href =
+        SISTEMA_SOLAR[planetaId] ? `planet.html?planet=${planetaId}` : 'index.html';
 
-      // Planet chip
-      const chip = document.getElementById('ar-planet-chip');
-      chip.style.display = 'flex';
-      const dot = document.getElementById('chip-dot');
-      dot.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color})`;
-      dot.style.boxShadow  = `0 0 10px ${planeta.color}88`;
-      document.getElementById('chip-name').textContent = planeta.nombre;
-      document.getElementById('chip-sub').textContent  = planeta.id !== 'sol'
-        ? `A ${planeta.distanciaModeloSol.toFixed(1)} m del Sol`
-        : 'Centro del sistema solar';
-
-      document.getElementById('ar-intro-text').textContent = planeta.id !== 'sol'
-        ? `Estás en ${planeta.nombre}. Apunta hacia la costanera para ver los demás planetas.`
-        : `Estás en el Sol. Apunta hacia el este para ver todos los planetas.`;
-
-      // HUD
-      const hHud  = document.getElementById('ar-hud');
-      const hDot  = document.getElementById('hud-dot');
-      const hName = document.getElementById('hud-name');
-      const hSub  = document.getElementById('hud-sub');
-      hDot.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.4), ${planeta.color})`;
-      hDot.style.boxShadow  = `0 0 8px ${planeta.color}88`;
-      hName.textContent = planeta.nombre;
-      hSub.textContent  = planeta.id !== 'sol'
-        ? `⌀ ${planeta.diametroReal.toLocaleString('es-CL')} km · ${planeta.distanciaModeloSol.toFixed(1)} m del Sol`
-        : `⌀ 1.392.000 km · Centro del sistema`;
-
-      // Real-time Earth→planet distance
-      const ORBITS_AR = {
-        sol:      { a: 0,        T: 1,         L0: 0            },
-        mercurio: { a: 0.387098, T: 87.969,    L0: 252.250906   },
-        venus:    { a: 0.723332, T: 224.701,   L0: 181.979801   },
-        marte:    { a: 1.523688, T: 686.971,   L0: 355.433275   },
-        jupiter:  { a: 5.202534, T: 4332.589,  L0: 34.396441    },
-        saturno:  { a: 9.536764, T: 10759.22,  L0: 49.944432    },
-        urano:    { a: 19.18916, T: 30685.4,   L0: 313.232810   },
-        neptuno:  { a: 30.06992, T: 60189.0,   L0: 304.880476   },
-      };
-      const TIERRA_AR = { a: 1.000000, T: 365.256, L0: 100.464441 };
-      const hDistReal = document.getElementById('hud-dist-real');
-      function updateRealDist() {
-        const J2000 = Date.UTC(2000, 0, 1, 12);
-        const days  = (Date.now() - J2000) / 86400000;
-        const eL = ((TIERRA_AR.L0 + 360 * days / TIERRA_AR.T) % 360) * Math.PI / 180;
-        const ex = TIERRA_AR.a * Math.cos(eL), ey = TIERRA_AR.a * Math.sin(eL);
-        let au;
-        if (planeta.id === 'sol') {
-          au = Math.sqrt(ex*ex + ey*ey);
-        } else {
-          const o = ORBITS_AR[planeta.id];
-          if (!o) return;
-          const L  = ((o.L0 + 360 * days / o.T) % 360) * Math.PI / 180;
-          const dx = o.a * Math.cos(L) - ex;
-          const dy = o.a * Math.sin(L) - ey;
-          au = Math.sqrt(dx*dx + dy*dy);
-        }
-        const km  = au * 149597870;
-        const mod = km * 1000 / 3093330000;
-        const kmStr  = km >= 1e9 ? (km/1e9).toFixed(2) + ' G km' :
-                       km >= 1e6 ? (km/1e6).toFixed(0) + ' M km' :
-                                   (km/1e3).toFixed(0) + ' k km';
-        const modStr = mod < 1    ? (mod*100).toFixed(1) + ' cm' :
-                       mod < 1000 ? mod.toFixed(0) + ' m' :
-                                    (mod/1000).toFixed(2) + ' km';
-        hDistReal.textContent = `${kmStr} reales · ${modStr} en modelo`;
-      }
-      updateRealDist();
-      setInterval(updateRealDist, 60000);
-
-      document.getElementById('hud-btn-info').href = `planet.html?planet=${planetaId}`;
-
-      const anterior  = getPlanetaAnterior(planetaId);
-      const siguiente = getPlanetaSiguiente(planetaId);
-      if (anterior) {
-        const b = document.getElementById('hud-btn-prev');
-        b.style.display = 'flex';
-        b.href = `ar.html?planet=${anterior.id}`;
-        document.getElementById('hud-prev-label').textContent = anterior.nombre;
-      }
-      if (siguiente) {
-        const b = document.getElementById('hud-btn-next');
-        b.style.display = 'flex';
-        b.href = `ar.html?planet=${siguiente.id}`;
-        document.getElementById('hud-next-label').textContent = siguiente.nombre;
-      }
-
-      // Iniciar AR
       document.getElementById('btn-iniciar-ar').addEventListener('click', () => {
         document.getElementById('ar-welcome').classList.add('hidden');
-        document.getElementById('ar-loading').style.display  = 'block';
+        document.getElementById('ar-loading').style.display       = 'block';
         document.getElementById('ar-scene-wrapper').style.display = 'block';
-        hHud.style.display = 'block';
-        buildARScene(planeta);
+        document.getElementById('ar-hud').style.display           = 'block';
+        buildARScene(planetaId);
       });
     })();
   </script>
