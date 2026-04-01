@@ -407,6 +407,10 @@
             <span class="material-symbols-outlined" style="font-size:16px">save</span>
             Guardar en este dispositivo
           </button>
+          <button class="btn btn-secondary" onclick="abrirQR()" style="width:100%;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:16px">qr_code_2</span>
+            Códigos QR pedestales
+          </button>
           <button class="btn btn-secondary" onclick="resetConfig()" style="width:100%;justify-content:center;color:var(--text-2)">
             <span class="material-symbols-outlined" style="font-size:16px">restart_alt</span>
             Restablecer valores
@@ -415,6 +419,27 @@
       </div>
 
     </aside>
+  </div>
+
+  <!-- Modal QR codes -->
+  <div id="qr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto">
+    <div class="modal-box" style="max-width:700px;max-height:none;margin:auto">
+      <h3 style="display:flex;align-items:center;gap:0.5rem">
+        <span class="material-symbols-outlined" style="font-size:18px">qr_code_2</span>
+        Códigos QR para pedestales
+      </h3>
+      <div style="display:flex;gap:0.625rem;flex-wrap:wrap;align-items:center">
+        <input type="url" id="qr-url-input" placeholder="https://nicoveraz.github.io/paseo-solar-frutillar/"
+          style="flex:1;min-width:220px;background:var(--bg);border:1px solid var(--border-hi);border-radius:6px;padding:0.4rem 0.75rem;color:var(--text);font-size:0.82rem;font-family:var(--font);outline:none" />
+        <button class="btn btn-secondary" onclick="descargarTodosQR()" style="font-size:0.8rem">
+          <span class="material-symbols-outlined" style="font-size:15px">download</span> Todos
+        </button>
+      </div>
+      <div id="qr-grid-modal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0.75rem;max-height:60vh;overflow-y:auto;padding:0.25rem"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('qr-modal').style.display='none'">Cerrar</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal exportar JSON -->
@@ -439,6 +464,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="js/planets-data.js"></script>
   <script>
   (function () {
@@ -911,8 +937,113 @@
     };
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') document.getElementById('export-modal').classList.remove('open');
+      if (e.key === 'Escape') {
+        document.getElementById('export-modal').classList.remove('open');
+        document.getElementById('qr-modal').style.display = 'none';
+      }
     });
+
+    // ── QR Generator ─────────────────────────────────────────────────
+    let _qrUrlListenerAdded = false;
+
+    window.abrirQR = function () {
+      const modal = document.getElementById('qr-modal');
+      modal.style.display = 'flex';
+      const input = document.getElementById('qr-url-input');
+      if (!input.value) {
+        input.value = window.location.origin +
+          window.location.pathname.replace(/configurar\.html.*$/, '');
+      }
+      _renderQRCards(input.value.trim());
+      if (!_qrUrlListenerAdded) {
+        _qrUrlListenerAdded = true;
+        input.addEventListener('input', () => _renderQRCards(input.value.trim()));
+      }
+    };
+
+    function _renderQRCards(baseUrl) {
+      const grid = document.getElementById('qr-grid-modal');
+      grid.innerHTML = '';
+      ORDEN_PLANETAS.forEach(id => {
+        const p   = SISTEMA_SOLAR[id];
+        const url = `${baseUrl.replace(/\/$/, '')}/planet.html?planet=${id}`;
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.75rem;display:flex;flex-direction:column;align-items:center;gap:0.5rem;text-align:center';
+
+        const sphere = document.createElement('div');
+        sphere.style.cssText = `width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,0.5),${p.color});box-shadow:0 0 12px ${p.color}55;flex-shrink:0`;
+
+        const nombre = document.createElement('div');
+        nombre.style.cssText = `font-weight:600;font-size:0.85rem;color:${p.color}`;
+        nombre.textContent = p.nombre;
+
+        const qrDiv = document.createElement('div');
+        qrDiv.id = `qrc-modal-${id}`;
+        qrDiv.style.cssText = 'display:flex;justify-content:center';
+
+        const btnDesc = document.createElement('button');
+        btnDesc.className = 'btn btn-secondary btn-sm';
+        btnDesc.style.cssText = 'width:100%;font-size:0.75rem;padding:0.25rem 0.5rem';
+        btnDesc.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px">download</span> PNG';
+        btnDesc.addEventListener('click', () => _downloadQRCard(id, p, url));
+
+        card.appendChild(sphere);
+        card.appendChild(nombre);
+        card.appendChild(qrDiv);
+        card.appendChild(btnDesc);
+        grid.appendChild(card);
+
+        setTimeout(() => {
+          if (typeof QRCode !== 'undefined') {
+            try {
+              new QRCode(qrDiv, {
+                text: url, width: 140, height: 140,
+                colorDark: '#ffffff', colorLight: '#0d0d24',
+                correctLevel: QRCode.CorrectLevel.M
+              });
+            } catch (err) {
+              qrDiv.innerHTML = `<div style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:0.7rem;text-align:center;border:1px dashed var(--border-hi);border-radius:6px">QR no disponible<br>en localhost</div>`;
+            }
+          } else {
+            qrDiv.innerHTML = `<div style="width:140px;padding:0.75rem;font-size:0.65rem;color:var(--text-2);word-break:break-all;border:1px dashed var(--border-hi);border-radius:6px">${url}</div>`;
+          }
+        }, 60);
+      });
+    }
+
+    function _downloadQRCard(id, p, url) {
+      const qrDiv = document.getElementById(`qrc-modal-${id}`);
+      if (!qrDiv) return;
+      const qrCanvas = qrDiv.querySelector('canvas');
+      if (!qrCanvas) { alert('El QR aún no se ha generado. Inténtalo de nuevo.'); return; }
+      const pad = 20, labelH = 36;
+      const c = document.createElement('canvas');
+      c.width  = qrCanvas.width  + pad * 2;
+      c.height = qrCanvas.height + pad * 2 + labelH;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#0d0d24';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(qrCanvas, pad, pad);
+      ctx.fillStyle = p.color;
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.nombre, c.width / 2, qrCanvas.height + pad + 24);
+      const a = document.createElement('a');
+      a.download = `qr-${id}.png`;
+      a.href = c.toDataURL('image/png');
+      a.click();
+    }
+
+    window.descargarTodosQR = function () {
+      const baseUrl = (document.getElementById('qr-url-input').value || '').trim();
+      ORDEN_PLANETAS.forEach((id, i) => {
+        setTimeout(() => {
+          _downloadQRCard(id, SISTEMA_SOLAR[id],
+            `${baseUrl.replace(/\/$/, '')}/planet.html?planet=${id}`);
+        }, i * 500);
+      });
+    };
 
     // ── Inicialización ────────────────────────────────────────────────
     document.getElementById('bearing-input').value = state.defaultBearing;
