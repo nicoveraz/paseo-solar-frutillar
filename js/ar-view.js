@@ -64,12 +64,78 @@ function _project(bearing) {
   };
 }
 
-/* ── GPS status ─────────────────────────────────────────────────── */
-function _setGpsStatus(msg, ok) {
+/* ── GPS status (acepta HTML para el enlace "reintentar") ────────── */
+function _setGpsStatus(msg, ok, isHtml) {
   const el = document.getElementById('ar-gps-status');
   if (!el) return;
-  el.textContent = msg;
+  if (isHtml) { el.innerHTML = msg; } else { el.textContent = msg; }
   el.style.color = ok ? '#88ff88' : '#ffaa44';
+}
+
+/* ── Fallback: geolocalización por IP (red WiFi/celular) ────────── */
+async function _geolocateByIP() {
+  _setGpsStatus('GPS lento — usando red…', false);
+  try {
+    const r = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(6000) });
+    const d = await r.json();
+    if (d.success && d.latitude && d.longitude) {
+      // Solo usar IP si aún no tenemos fix real
+      if (_gpsLat === null) {
+        _gpsLat = d.latitude;
+        _gpsLng = d.longitude;
+        _setGpsStatus('Red ≈ (±3 km)  —  esperando GPS…', false);
+      }
+    }
+  } catch (_) { /* silencioso */ }
+}
+
+/* ── Reinicia GPS + fallback IP ─────────────────────────────────── */
+function _retryGPS() {
+  if (_watchId !== null) { navigator.geolocation.clearWatch(_watchId); _watchId = null; }
+  _gpsLat = null; _gpsLng = null;
+  _startGPS();
+}
+window._retryGPS = _retryGPS;
+
+/* ── Inicia GPS (paso 1 + paso 2) ───────────────────────────────── */
+function _startGPS() {
+  if (!('geolocation' in navigator)) { _setGpsStatus('GPS no disponible', false); return; }
+  _setGpsStatus('Buscando GPS…', false);
+
+  // Paso 1: posición rápida desde caché o red (enableHighAccuracy: false → A-GPS / WiFi / celular)
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      _gpsLat = pos.coords.latitude;
+      _gpsLng = pos.coords.longitude;
+      _setGpsStatus('GPS ✓', true);
+    },
+    () => {
+      // Si el paso rápido también falla, intentar IP
+      _geolocateByIP();
+    },
+    { enableHighAccuracy: false, maximumAge: 120000, timeout: 8000 }
+  );
+
+  // Paso 2: seguimiento continuo de alta precisión
+  // timeout: Infinity → cada update espera el tiempo que necesite (recomendado para watchPosition)
+  _watchId = navigator.geolocation.watchPosition(
+    pos => {
+      _gpsLat = pos.coords.latitude;
+      _gpsLng = pos.coords.longitude;
+      _setGpsStatus('GPS ✓', true);
+    },
+    err => {
+      const msgs = ['', 'Permiso denegado', 'Posición no disponible', 'Tiempo agotado'];
+      const label = msgs[err.code] || err.message;
+      _setGpsStatus(
+        `GPS: ${label} — <span style="text-decoration:underline;cursor:pointer" onclick="window._retryGPS()">reintentar</span>`,
+        false, true
+      );
+      // Fallback a IP si aún no tenemos nada
+      if (_gpsLat === null) _geolocateByIP();
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: Infinity }
+  );
 }
 
 /* ── HUD ────────────────────────────────────────────────────────── */
@@ -339,31 +405,6 @@ async function buildARScene(initialPlanetId) {
   // Iniciar loop de posicionamiento
   _loop();
 
-  // GPS — paso 1: posición rápida desde caché (sin esperar fix preciso)
-  if (!('geolocation' in navigator)) { _setGpsStatus('GPS no disponible', false); return; }
-  _setGpsStatus('Buscando GPS…', false);
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      _gpsLat = pos.coords.latitude;
-      _gpsLng = pos.coords.longitude;
-      _setGpsStatus('GPS ✓', true);
-    },
-    () => {},
-    { enableHighAccuracy: false, maximumAge: 60000, timeout: 5000 }
-  );
-
-  // GPS — paso 2: seguimiento continuo de alta precisión
-  _watchId = navigator.geolocation.watchPosition(
-    pos => {
-      _gpsLat = pos.coords.latitude;
-      _gpsLng = pos.coords.longitude;
-      _setGpsStatus('GPS ✓', true);
-    },
-    err => {
-      const msgs = ['', 'Permiso denegado', 'Posición no disponible', 'Tiempo agotado'];
-      _setGpsStatus('GPS: ' + (msgs[err.code] || err.message), false);
-    },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 }
-  );
+  // Iniciar GPS (con fallback a IP si tarda o falla)
+  _startGPS();
 }
