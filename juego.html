@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Misión Solar — Paseo Solar Frutillar</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    /* ── Starfield ─────────────────────────────────────────────── */
+    body { margin: 0; min-height: 100vh; background: #050510; }
+    .stars-bg {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .star {
+      position: absolute; border-radius: 50%; background: #fff;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+      opacity: var(--op, 0.6);
+    }
+    @keyframes twinkle { 0%,100%{opacity:var(--op,.6)} 50%{opacity:calc(var(--op,.6)*.2)} }
+
+    /* ── Layout ────────────────────────────────────────────────── */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 480px; margin: 0 auto;
+      padding: 0 1rem calc(2rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    .game-header {
+      display: flex; align-items: center; gap: .75rem;
+      padding: calc(env(safe-area-inset-top,0px) + 1rem) 0 1.25rem;
+    }
+    .game-header a {
+      color: var(--text-2); text-decoration: none;
+      display: flex; align-items: center;
+    }
+    .game-header-title { font-weight: 700; font-size: 1.05rem; }
+    .game-header-sub   { font-size: .72rem; color: var(--text-2); }
+
+    /* ── Hero ──────────────────────────────────────────────────── */
+    .hero {
+      text-align: center; padding: 1.5rem 0 1.25rem;
+    }
+    .hero-icon {
+      font-size: 3.5rem; line-height: 1; margin-bottom: .5rem;
+      filter: drop-shadow(0 0 18px #fdb81388);
+      animation: hero-float 3s ease-in-out infinite;
+    }
+    @keyframes hero-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .hero h1 { font-size: 1.75rem; font-weight: 800; margin: 0 0 .35rem; letter-spacing:-.02em; }
+    .hero p  { color: var(--text-2); font-size: .875rem; margin: 0; max-width: 320px; margin-inline: auto; }
+
+    /* ── Progress ──────────────────────────────────────────────── */
+    .progress-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .progress-top {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: .6rem;
+    }
+    .progress-num  { font-size: 2rem; font-weight: 800; color: #fdb813; line-height: 1; }
+    .progress-denom{ font-size: 1rem; color: var(--text-2); margin-left: .15rem; }
+    .progress-label{ font-size: .78rem; color: var(--text-2); }
+    .progress-bar  {
+      height: 6px; border-radius: 3px;
+      background: var(--surface-2);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #fdb813, #ff6b00);
+      transition: width .6s ease;
+    }
+    .progress-stars {
+      display: flex; gap: 4px; margin-top: .6rem; flex-wrap: wrap;
+    }
+    .progress-star { font-size: .85rem; transition: filter .3s; }
+    .progress-star.dim { filter: grayscale(1) brightness(.4); }
+
+    /* ── Planet grid ───────────────────────────────────────────── */
+    .planets-title {
+      font-size: .8rem; font-weight: 600; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: .06em;
+      margin: 0 0 .75rem;
+    }
+    .planet-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .625rem;
+      margin-bottom: 1.5rem;
+    }
+    .planet-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: .75rem .5rem;
+      display: flex; flex-direction: column; align-items: center; gap: .35rem;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      text-decoration: none; color: inherit;
+      position: relative; overflow: hidden;
+    }
+    .planet-card.collected { border-color: var(--pcolor); background: color-mix(in srgb, var(--pcolor) 8%, var(--surface)); }
+    .planet-card.collected .pc-img { filter: none; }
+    .planet-card.collected .pc-name { color: var(--pcolor); }
+    .planet-card .pc-img {
+      width: 44px; height: 44px; object-fit: contain;
+      filter: grayscale(1) brightness(.25);
+      transition: filter .4s;
+    }
+    .planet-card .pc-name {
+      font-size: .72rem; font-weight: 700; color: var(--text-2);
+      transition: color .4s; text-align: center;
+    }
+    .planet-card .pc-time { font-size: .6rem; color: var(--text-2); }
+    .planet-card .pc-lock {
+      font-size: 1rem; color: var(--text-2); opacity: .4;
+    }
+    .planet-card .pc-check {
+      position: absolute; top: 5px; right: 5px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #00c853; color: #fff;
+      font-size: 9px; font-weight: 700;
+      display: none; align-items: center; justify-content: center;
+    }
+    .planet-card.collected .pc-check { display: flex; }
+
+    /* ── CTA ───────────────────────────────────────────────────── */
+    .cta-section { display: flex; flex-direction: column; gap: .75rem; }
+    .btn-mission {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .875rem 1.5rem; border-radius: 12px;
+      background: linear-gradient(135deg, #fdb813, #ff6b00);
+      color: #000; font-weight: 700; font-size: 1rem;
+      border: none; cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 24px rgba(253,184,19,.4);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-mission:active { transform: scale(.97); }
+    .btn-reset {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-2); font-size: .78rem;
+      padding: .5rem; border-radius: 8px;
+      cursor: pointer; transition: color .2s, border-color .2s;
+    }
+    .btn-reset:hover { color: var(--text); border-color: var(--border-hi); }
+
+    /* ── Completed banner ──────────────────────────────────────── */
+    .completed-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(253,184,19,.15), rgba(255,107,0,.1));
+      border: 1px solid rgba(253,184,19,.4);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      text-align: center; margin-bottom: 1.25rem;
+    }
+    .completed-banner.show { display: block; }
+    .completed-banner h3 { margin: 0 0 .25rem; font-size: 1.1rem; }
+    .completed-banner p  { margin: 0; font-size: .8rem; color: var(--text-2); }
+  </style>
+</head>
+<body>
+
+  <div class="stars-bg" id="stars-bg"></div>
+
+  <div class="page-wrap">
+
+    <!-- Header -->
+    <div class="game-header">
+      <a href="index.html">
+        <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+      </a>
+      <div>
+        <div class="game-header-title">Misión Solar</div>
+        <div class="game-header-sub">Paseo Solar Frutillar</div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-icon">🚀</div>
+      <h1>Encuentra los planetas</h1>
+      <p>Recorre la costanera y captura los 9 planetas del sistema solar a escala 1:3.093.333.333.</p>
+    </div>
+
+    <!-- Completed banner -->
+    <div class="completed-banner" id="completed-banner">
+      <h3>🏆 ¡Misión Completa!</h3>
+      <p>Encontraste todos los planetas. ¡Eres un Explorador del Sistema Solar!</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-card">
+      <div class="progress-top">
+        <div>
+          <span class="progress-num" id="prog-num">0</span>
+          <span class="progress-denom"> / 9</span>
+        </div>
+        <span class="progress-label">planetas descubiertos</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-stars" id="prog-stars"></div>
+    </div>
+
+    <!-- Planet grid -->
+    <p class="planets-title">Planetas</p>
+    <div class="planet-grid" id="planet-grid"></div>
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <a id="btn-mission" href="juego-ar.html" class="btn-mission">
+        <span class="material-symbols-outlined">rocket_launch</span>
+        <span id="btn-mission-label">Iniciar Misión</span>
+      </a>
+      <button class="btn-reset" id="btn-reset" style="display:none"
+              onclick="if(confirm('¿Resetear progreso?')){window.resetGame();}">
+        ↺ Resetear progreso
+      </button>
+    </div>
+
+  </div>
+
+  <script src="js/planets-data.js"></script>
+  <script>
+    const GAME_KEY = 'psf_mission_v1';
+
+    function loadState() {
+      try { return Object.assign({ collected:{} }, JSON.parse(localStorage.getItem(GAME_KEY)||'{}')); }
+      catch(_) { return { collected:{} }; }
+    }
+
+    window.resetGame = function() {
+      localStorage.removeItem(GAME_KEY);
+      location.reload();
+    };
+
+    function render() {
+      const gs    = loadState();
+      const keys  = Object.keys(gs.collected);
+      const n     = keys.length;
+      const total = ORDEN_PLANETAS.length;
+      const pct   = Math.round(n / total * 100);
+
+      document.getElementById('prog-num').textContent  = n;
+      document.getElementById('prog-fill').style.width = pct + '%';
+      if (n > 0) document.getElementById('btn-mission-label').textContent = 'Continuar Misión';
+      if (n > 0) document.getElementById('btn-reset').style.display = 'block';
+      if (n >= total) document.getElementById('completed-banner').classList.add('show');
+
+      // Stars row
+      const starsEl = document.getElementById('prog-stars');
+      ORDEN_PLANETAS.forEach(id => {
+        const s = document.createElement('span');
+        s.className = 'progress-star' + (gs.collected[id] ? '' : ' dim');
+        s.textContent = '⭐';
+        starsEl.appendChild(s);
+      });
+
+      // Planet grid
+      const grid = document.getElementById('planet-grid');
+      ORDEN_PLANETAS.forEach(id => {
+        const p   = SISTEMA_SOLAR[id];
+        const col = gs.collected[id];
+        const t   = col ? new Date(col).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}) : '';
+        const card = document.createElement('a');
+        card.href      = col ? `planet.html?planet=${id}` : 'juego-ar.html';
+        card.className = 'planet-card' + (col ? ' collected' : '');
+        card.style.setProperty('--pcolor', p.color);
+        card.innerHTML = `
+          <div class="pc-check">✓</div>
+          <img class="pc-img" src="${p.imagen}" onerror="this.src='${p.imagenFallback}'" alt="${p.nombre}">
+          ${col
+            ? `<span class="pc-name">${p.nombre}</span><span class="pc-time">${t}</span>`
+            : `<span class="pc-name">${p.nombre}</span><span class="pc-lock">🔒</span>`}
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Starfield
+    const bg = document.getElementById('stars-bg');
+    for (let i = 0; i < 120; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const sz = Math.random() * 2 + 1;
+      s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;
+        --op:${.3+Math.random()*.7};--dur:${2+Math.random()*4}s;--delay:${Math.random()*4}s`;
+      bg.appendChild(s);
+    }
+
+    render();
+  </script>
+</body>
+</html>
