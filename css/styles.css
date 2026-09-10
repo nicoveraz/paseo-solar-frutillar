@@ -194,6 +194,8 @@ code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.875em; backg
 @media (min-width: 768px) { #mapa { height: 500px; } }
 
 .leaflet-container { background: #0a0a1a !important; }
+/* Tiles OSM en modo oscuro */
+.leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.75) contrast(0.95) saturate(0.35); }
 .planet-label-tooltip {
   background: transparent !important;
   border: none !important;

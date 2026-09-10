@@ -500,11 +500,7 @@
       zoomControl: true
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap © CARTO',
-      subdomains: 'abcd',
-      maxZoom: 21
-    }).addTo(map);
+    capaBaseMapa().addTo(map);
 
     // ── Marcadores y capas ────────────────────────────────────────────
     let sunMarker     = null;

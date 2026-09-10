@@ -12,12 +12,7 @@
 
     const map = L.map('mapa', { zoomControl: true, attributionControl: true });
 
-    // Tiles oscuros CartoDB
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
-    }).addTo(map);
+    capaBaseMapa().addTo(map);
 
     // Línea punteada desde el Sol hasta Neptuno
     const costaneraCoords = ORDEN_PLANETAS.map(id => [SISTEMA_SOLAR[id].coords.lat, SISTEMA_SOLAR[id].coords.lng]);
