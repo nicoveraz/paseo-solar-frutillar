@@ -346,6 +346,14 @@ function formatearDistancia(metros) {
   return metros >= 1000 ? fmtNum(metros / 1000, 3) + ' km' : fmtNum(metros, 1) + ' m';
 }
 
+// Capa base de mapa (OpenStreetMap, oscurecida vía CSS en .leaflet-tile-pane)
+function capaBaseMapa() {
+  return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  });
+}
+
 // Diámetro en el modelo (cm): "1,58 mm" · "4,52 cm" · "45 cm"
 function formatearDiametro(cm) {
   if (cm < 1)   return fmtNum(cm * 10, 2) + ' mm';

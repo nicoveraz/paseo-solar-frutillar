@@ -254,9 +254,7 @@
           zoomControl: false, attributionControl: false,
           scrollWheelZoom: false, dragging: false, doubleClickZoom: false
         });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          subdomains: 'abcd', maxZoom: 20
-        }).addTo(map);
+        capaBaseMapa().addTo(map);
         L.polyline(
           ORDEN_PLANETAS.map(id => [SISTEMA_SOLAR[id].coords.lat, SISTEMA_SOLAR[id].coords.lng]),
           { color: 'rgba(253,184,19,0.2)', weight: 1.5, dashArray: '4 3' }
