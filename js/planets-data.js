@@ -1,43 +1,18 @@
 'use strict';
 
-// Escala: 1:3,093,333,333
-// El Sol (diámetro 45 cm) está en la costanera de Frutillar
-// Coordenadas y rumbos exportados desde configurar.html el 2025-03-31
-const ESCALA = 1 / 3093333333;
-const SOL_COORDS = { lat: -41.129935, lng: -73.027327 };
-const RUMBO_COSTANERA = 185.00; // rumbo promedio real de la costanera (≈ sur)
-
-// Calcula coordenadas GPS a partir de una distancia en metros y un rumbo
-function calcularCoordenadas(distanciaMetros, rumbo) {
-  const R = 6371000;
-  const r = rumbo !== undefined ? rumbo : RUMBO_COSTANERA;
-  const lat1 = SOL_COORDS.lat * Math.PI / 180;
-  const lon1 = SOL_COORDS.lng * Math.PI / 180;
-  const d = distanciaMetros / R;
-  const theta = r * Math.PI / 180;
-  const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(d) +
-    Math.cos(lat1) * Math.sin(d) * Math.cos(theta)
-  );
-  const lon2 = lon1 + Math.atan2(
-    Math.sin(theta) * Math.sin(d) * Math.cos(lat1),
-    Math.cos(d) - Math.sin(lat1) * Math.sin(lat2)
-  );
-  return {
-    lat: parseFloat((lat2 * 180 / Math.PI).toFixed(6)),
-    lng: parseFloat(((lon2 * 180 / Math.PI + 540) % 360 - 180).toFixed(6))
-  };
-}
+// planets-data.js — Datos del modelo a escala del Paseo Solar Frutillar
+// Escala 1:3.093.333.333 → el Sol (1.392.000 km) mide 45 cm.
+// Coordenadas GPS exportadas desde configurar.html (2025-03-31).
+const ESCALA_TEXTO = '1:3.093.333.333';
+const SOL_COORDS   = { lat: -41.129935, lng: -73.027327 };
 
 const SISTEMA_SOLAR = {
   sol: {
     id: 'sol',
     nombre: 'El Sol',
-    nombreIngles: 'The Sun',
     simbolo: '☉',
     tipo: 'estrella',
     color: '#fdb813',
-    colorSecundario: '#ff6b00',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/3D_Sun.png',
     imagenFallback: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg/1024px-The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -61,11 +36,9 @@ const SISTEMA_SOLAR = {
   mercurio: {
     id: 'mercurio',
     nombre: 'Mercurio',
-    nombreIngles: 'Mercury',
     simbolo: '☿',
     tipo: 'planeta terrestre',
     color: '#b5b5b5',
-    colorSecundario: '#8a8a8a',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/b/b9/3D_Mercury.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia15162-mercury-basins-messenger-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -73,7 +46,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.1577,
     distanciaRealSol: 57.9,
     distanciaModeloSol: 18.72,
-    rumbo: 185.31,
     lunas: [],
     descripcion: 'Mercurio es el planeta más pequeño del sistema solar y el más cercano al Sol. Con un diámetro de apenas 4.879 km, es incluso más pequeño que algunas lunas planetarias. Su superficie, densamente cubierta de cráteres, se asemeja a la de nuestra Luna. Sin atmósfera significativa que retenga el calor, las temperaturas oscilan entre -180 °C en la sombra y 430 °C en el lado iluminado. Un año mercuriano dura solo 88 días terrestres, pero un día solar en Mercurio dura 176 días. En este modelo a escala, Mercurio sería una bolita de apenas 1,6 mm de diámetro, colocada a 18,72 metros del Sol.',
     datosClave: [
@@ -90,11 +62,9 @@ const SISTEMA_SOLAR = {
   venus: {
     id: 'venus',
     nombre: 'Venus',
-    nombreIngles: 'Venus',
     simbolo: '♀',
     tipo: 'planeta terrestre',
     color: '#e8cda0',
-    colorSecundario: '#c9a84c',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/f/f4/3D_Venus.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/venus-mariner-10-pia23791-fig2-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -102,7 +72,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.3912,
     distanciaRealSol: 108.2,
     distanciaModeloSol: 34.98,
-    rumbo: 187.62,
     lunas: [],
     descripcion: 'Venus es a menudo llamado el "planeta gemelo" de la Tierra por su tamaño similar, pero en realidad es un mundo radicalmente diferente. Su densa atmósfera de dióxido de carbono crea un efecto invernadero tan extremo que la temperatura superficial supera los 465 °C, más caliente que Mercurio a pesar de estar más lejos del Sol. Venus gira en dirección opuesta a la mayoría de los planetas (rotación retrógrada), y un día venusiano dura más que su propio año. La presión atmosférica en su superficie es 90 veces mayor que en la Tierra, equivalente a estar a 900 metros de profundidad en el océano.',
     datosClave: [
@@ -119,11 +88,9 @@ const SISTEMA_SOLAR = {
   tierra: {
     id: 'tierra',
     nombre: 'La Tierra',
-    nombreIngles: 'Earth',
     simbolo: '🌍',
     tipo: 'planeta terrestre',
     color: '#4fa3e0',
-    colorSecundario: '#2e7d32',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/blue-marble-apollo-17-16x9-1.jpg',
     imagenCredito: 'NASA/Apollo 17',
@@ -131,7 +98,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.4119,
     distanciaRealSol: 149.6,
     distanciaModeloSol: 48.36,
-    rumbo: 187.22,
     lunas: [
       {
         nombre: 'Luna',
@@ -157,11 +123,9 @@ const SISTEMA_SOLAR = {
   marte: {
     id: 'marte',
     nombre: 'Marte',
-    nombreIngles: 'Mars',
     simbolo: '♂',
     tipo: 'planeta terrestre',
     color: '#c1440e',
-    colorSecundario: '#8b3a0e',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/6/68/Mars_%2816716283421%29_-_Transparent_background.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/mars-full-globe-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -169,7 +133,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 0.2191,
     distanciaRealSol: 227.9,
     distanciaModeloSol: 73.67,
-    rumbo: 187.18,
     lunas: [
       {
         nombre: 'Fobos',
@@ -203,11 +166,9 @@ const SISTEMA_SOLAR = {
   jupiter: {
     id: 'jupiter',
     nombre: 'Júpiter',
-    nombreIngles: 'Jupiter',
     simbolo: '♃',
     tipo: 'gigante gaseoso',
     color: '#c88b3a',
-    colorSecundario: '#8b5e1a',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/e/ed/3D_Jupiter.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/jupiter-marble-pia22946-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -215,7 +176,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 4.52,
     distanciaRealSol: 778.5,
     distanciaModeloSol: 251.67,
-    rumbo: 183.08,
     lunas: [
       {
         nombre: 'Ío',
@@ -265,11 +225,9 @@ const SISTEMA_SOLAR = {
   saturno: {
     id: 'saturno',
     nombre: 'Saturno',
-    nombreIngles: 'Saturn',
     simbolo: '♄',
     tipo: 'gigante gaseoso',
     color: '#e4d191',
-    colorSecundario: '#b8a040',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/c/c0/3D_Saturn.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2023/05/saturn-farewell-pia21345-sse-banner-1920x640-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -277,7 +235,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 3.7649,
     distanciaRealSol: 1432,
     distanciaModeloSol: 462.93,
-    rumbo: 180.14,
     lunas: [
       {
         nombre: 'Titán',
@@ -303,11 +260,9 @@ const SISTEMA_SOLAR = {
   urano: {
     id: 'urano',
     nombre: 'Urano',
-    nombreIngles: 'Uranus',
     simbolo: '⛢',
     tipo: 'gigante de hielo',
     color: '#7de8e8',
-    colorSecundario: '#4bb8b8',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/3/32/3D_Uranus.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/uranus-pia18182-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -315,7 +270,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 1.6398,
     distanciaRealSol: 2877,
     distanciaModeloSol: 930.06,
-    rumbo: 175.99,
     lunas: [
       { nombre: 'Ariel', diametroReal: 1158, diametroModelo: 0.03743, distanciaReal: 190900, distanciaModelo: 6.171, descripcion: 'Luna con mezcla de cráteres y cañones.' },
       { nombre: 'Umbriel', diametroReal: 1169, diametroModelo: 0.03781, distanciaReal: 266000, distanciaModelo: 8.599, descripcion: 'Luna de superficie oscura y antigua.' },
@@ -337,11 +291,9 @@ const SISTEMA_SOLAR = {
   neptuno: {
     id: 'neptuno',
     nombre: 'Neptuno',
-    nombreIngles: 'Neptune',
     simbolo: '♆',
     tipo: 'gigante de hielo',
     color: '#4b70dd',
-    colorSecundario: '#2a3fa0',
     imagen: 'https://upload.wikimedia.org/wikipedia/commons/d/da/3D_Neptune.png',
     imagenFallback: 'https://science.nasa.gov/wp-content/uploads/2024/03/pia01492-neptune-full-disk-16x9-1.jpg',
     imagenCredito: 'Wikimedia Commons / NASA',
@@ -349,7 +301,6 @@ const SISTEMA_SOLAR = {
     diametroModelo: 1.5921,
     distanciaRealSol: 4503,
     distanciaModeloSol: 1455.71,
-    rumbo: 170.31,
     lunas: [
       {
         nombre: 'Tritón',
@@ -375,28 +326,29 @@ const SISTEMA_SOLAR = {
 
 const ORDEN_PLANETAS = ['sol', 'mercurio', 'venus', 'tierra', 'marte', 'jupiter', 'saturno', 'urano', 'neptuno'];
 
-function getPlaneta(id) {
-  return SISTEMA_SOLAR[id] || null;
-}
-
 function getPlanetaAnterior(id) {
   const idx = ORDEN_PLANETAS.indexOf(id);
-  if (idx <= 0) return null;
-  return SISTEMA_SOLAR[ORDEN_PLANETAS[idx - 1]];
+  return idx > 0 ? SISTEMA_SOLAR[ORDEN_PLANETAS[idx - 1]] : null;
 }
 
 function getPlanetaSiguiente(id) {
   const idx = ORDEN_PLANETAS.indexOf(id);
-  if (idx < 0 || idx >= ORDEN_PLANETAS.length - 1) return null;
-  return SISTEMA_SOLAR[ORDEN_PLANETAS[idx + 1]];
+  return idx >= 0 && idx < ORDEN_PLANETAS.length - 1 ? SISTEMA_SOLAR[ORDEN_PLANETAS[idx + 1]] : null;
 }
 
+// Número con formato chileno (coma decimal, punto de miles)
+function fmtNum(n, decimales = 0) {
+  return n.toLocaleString('es-CL', { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
+}
+
+// Distancia en el modelo: "48,4 m" · "1,456 km"
 function formatearDistancia(metros) {
-  if (metros >= 1000) return (metros / 1000).toFixed(3) + ' km';
-  return metros.toFixed(2) + ' m';
+  return metros >= 1000 ? fmtNum(metros / 1000, 3) + ' km' : fmtNum(metros, 1) + ' m';
 }
 
+// Diámetro en el modelo (cm): "1,58 mm" · "4,52 cm" · "45 cm"
 function formatearDiametro(cm) {
-  if (cm < 0.1) return (cm * 10).toFixed(3) + ' mm';
-  return cm.toFixed(4) + ' cm';
+  if (cm < 1)   return fmtNum(cm * 10, 2) + ' mm';
+  if (cm < 10)  return fmtNum(cm, 2) + ' cm';
+  return fmtNum(cm, 0) + ' cm';
 }

@@ -10,13 +10,7 @@
     const mapEl = document.getElementById('mapa');
     if (!mapEl) return;
 
-    // Centrar el mapa en el Sol y zonar para ver toda la costanera
-    const map = L.map('mapa', {
-      center: [SOL_COORDS.lat, SOL_COORDS.lng + 0.007],
-      zoom: 14,
-      zoomControl: true,
-      attributionControl: true
-    });
+    const map = L.map('mapa', { zoomControl: true, attributionControl: true });
 
     // Tiles oscuros CartoDB
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -25,49 +19,23 @@
       maxZoom: 20
     }).addTo(map);
 
-    // Dibujar la línea de la costanera
-    const costaneraCoords = ORDEN_PLANETAS.map(id => {
-      const p = SISTEMA_SOLAR[id];
-      return [p.coords.lat, p.coords.lng];
-    });
-
     // Línea punteada desde el Sol hasta Neptuno
+    const costaneraCoords = ORDEN_PLANETAS.map(id => [SISTEMA_SOLAR[id].coords.lat, SISTEMA_SOLAR[id].coords.lng]);
     L.polyline(costaneraCoords, {
       color: 'rgba(253, 184, 19, 0.25)',
       weight: 2,
       dashArray: '6 4'
     }).addTo(map);
 
-    // Agregar marcador para cada planeta
-    ORDEN_PLANETAS.forEach(id => {
-      const planeta = SISTEMA_SOLAR[id];
-      addPlanetMarker(map, planeta);
-    });
+    ORDEN_PLANETAS.forEach(id => addPlanetMarker(map, SISTEMA_SOLAR[id]));
 
-    // Ajustar la vista para mostrar todos los planetas hasta Saturno (aprox.)
-    // Neptune queda muy lejos, así que el zoom inicial muestra hasta Júpiter
-    map.fitBounds([
-      [SOL_COORDS.lat - 0.002, SOL_COORDS.lng - 0.005],
-      [SOL_COORDS.lat + 0.002, SISTEMA_SOLAR.saturno.coords.lng + 0.003]
-    ]);
+    // Encuadrar todo el recorrido (Sol → Neptuno, ~1,5 km hacia el sur)
+    map.fitBounds(L.latLngBounds(costaneraCoords), { padding: [30, 30] });
   }
 
-  function getPlanetSize(planeta) {
-    // Escalar el tamaño del marcador para visualización (min 10px, max 40px)
-    if (planeta.id === 'sol') return 36;
-    // Los planetas son muy pequeños en escala real, así que usamos log scale visual
-    const sizes = {
-      mercurio: 8,
-      venus: 12,
-      tierra: 12,
-      marte: 10,
-      jupiter: 26,
-      saturno: 22,
-      urano: 16,
-      neptuno: 16
-    };
-    return sizes[planeta.id] || 10;
-  }
+  // Tamaño visual del marcador (los planetas reales serían invisibles a esta escala)
+  const MARKER_SIZES = { sol: 36, mercurio: 8, venus: 12, tierra: 12, marte: 10, jupiter: 26, saturno: 22, urano: 16, neptuno: 16 };
+  const getPlanetSize = planeta => MARKER_SIZES[planeta.id] || 10;
 
   function addPlanetMarker(map, planeta) {
     const size = getPlanetSize(planeta);
@@ -98,12 +66,10 @@
       .addTo(map);
 
     // Popup
-    const esDistancia = planeta.id !== 'sol'
-      ? `<p style="color:#aaa;margin:0.25rem 0 0;font-size:0.8rem">📍 ${planeta.distanciaModeloSol.toFixed(1)} m desde el Sol</p>`
-      : '';
-
-    const lunaInfo = planeta.lunas && planeta.lunas.length > 0
-      ? `<p style="color:#aaa;margin:0.25rem 0 0;font-size:0.8rem">🌙 ${planeta.lunas.length} luna${planeta.lunas.length > 1 ? 's' : ''}: ${planeta.lunas.map(l => l.nombre).join(', ')}</p>`
+    const line = txt => `<p style="color:#aaa;margin:0.2rem 0 0;font-size:0.8rem">${txt}</p>`;
+    const esDistancia = isSol ? '' : line(`📍 ${formatearDistancia(planeta.distanciaModeloSol)} desde el Sol`);
+    const lunaInfo = planeta.lunas.length
+      ? line(`🌙 ${planeta.lunas.length} luna${planeta.lunas.length > 1 ? 's' : ''}: ${planeta.lunas.map(l => l.nombre).join(', ')}`)
       : '';
 
     const popupContent = `
@@ -122,14 +88,11 @@
             <div style="font-size:0.72rem;color:#888;text-transform:uppercase;letter-spacing:0.05em">${planeta.tipo}</div>
           </div>
         </div>
-        ${planeta.id !== 'sol' ? `<p style="color:#aaa;margin:0;font-size:0.8rem">⌀ real: ${planeta.diametroReal.toLocaleString('es-CL')} km</p>` : ''}
-        ${planeta.id !== 'sol' ? `<p style="color:#aaa;margin:0.2rem 0 0;font-size:0.8rem">⌀ modelo: ${formatearDiametro(planeta.diametroModelo)}</p>` : ''}
+        ${line(`⌀ real: ${fmtNum(planeta.diametroReal)} km`)}
+        ${line(`⌀ modelo: ${formatearDiametro(planeta.diametroModelo)}`)}
         ${esDistancia}
         ${lunaInfo}
-        ${planeta.id !== 'sol'
-          ? `<a href="planet.html?planet=${planeta.id}" style="display:inline-block;margin-top:0.75rem;padding:0.3rem 0.75rem;background:#fdb813;color:#000;border-radius:6px;font-size:0.8rem;font-weight:600;text-decoration:none">Ver detalles →</a>`
-          : `<a href="planet.html?planet=sol" style="display:inline-block;margin-top:0.75rem;padding:0.3rem 0.75rem;background:#fdb813;color:#000;border-radius:6px;font-size:0.8rem;font-weight:600;text-decoration:none">Ver detalles →</a>`
-        }
+        <a href="planet.html?planet=${planeta.id}" class="btn btn-primary btn-sm" style="margin-top:0.75rem">Ver detalles →</a>
       </div>
     `;
 
