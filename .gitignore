@@ -12,9 +12,5 @@
 # Logs
 *.log
 
-# Generated QR codes (regenerar desde qr-codes.html)
-qr-codes/*.png
-qr-codes/*.svg
-
 # Thumbnails
 Thumbs.db

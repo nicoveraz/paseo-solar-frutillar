@@ -8,19 +8,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    #mini-mapa {
-      height: 180px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    .leaflet-popup-content-wrapper {
-      background: var(--surface) !important;
-      color: var(--text) !important;
-      border: 1px solid var(--border-hi) !important;
-      border-radius: var(--radius) !important;
-    }
-    .leaflet-popup-tip-container { display: none !important; }
+    #mini-mapa { height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -31,15 +19,15 @@
         <div class="sol-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/3D_Sun.png" alt="Sol" /></div>
         <div class="site-logo-text">
           <strong>Paseo Solar Frutillar</strong>
-          <span>Escala 1:3.093.330.000</span>
+          <span>Escala 1:3.093.333.333</span>
         </div>
       </a>
       <nav class="site-nav">
         <a href="index.html" class="nav-link">
           <span class="material-symbols-outlined">arrow_back</span> Inicio
         </a>
-        <a href="ar.html" id="nav-ar-link" class="btn btn-primary" style="font-size:0.82rem;padding:0.35rem 0.75rem;gap:0.3rem">
-          <span class="material-symbols-outlined" style="font-size:16px">view_in_ar</span> AR
+        <a href="ar.html" id="nav-ar-link" class="btn btn-primary btn-nav">
+          <span class="material-symbols-outlined">view_in_ar</span> AR
         </a>
       </nav>
     </div>
@@ -161,7 +149,7 @@
     (function () {
       const params    = new URLSearchParams(window.location.search);
       const planetaId = params.get('planet') || 'tierra';
-      const planeta   = getPlaneta(planetaId);
+      const planeta   = SISTEMA_SOLAR[planetaId];
 
       if (!planeta) {
         document.body.innerHTML = '<div style="padding:4rem;text-align:center"><p>Planeta no encontrado.</p><a href="index.html">← Volver</a></div>';
@@ -174,11 +162,7 @@
       document.getElementById('breadcrumb-nombre').textContent = planeta.nombre;
 
       // Esfera hero
-      const esfera = document.getElementById('planeta-esfera-hero');
-      // Gradiente como fondo base (visible mientras carga la imagen o si falla)
-      // Sin fondo — mix-blend-mode:screen elimina el fondo negro de la imagen NASA
-      esfera.style.filter = `drop-shadow(0 0 20px ${planeta.color}66)`;
-      // Imagen NASA
+      document.getElementById('planeta-esfera-hero').style.filter = `drop-shadow(0 0 20px ${planeta.color}66)`;
       const img = document.getElementById('planeta-img');
       img.src = planeta.imagen || '';
       img.dataset.fallback = planeta.imagenFallback || '';
@@ -189,23 +173,21 @@
       document.getElementById('planeta-simbolo').textContent = planeta.simbolo || '';
       document.getElementById('planeta-nombre').textContent  = planeta.nombre;
       document.getElementById('planeta-tipo').textContent    = planeta.tipo;
-      document.getElementById('escala-label').textContent    =
-        planeta.id === 'sol' ? '⌀ modelo: 35 cm' : `⌀ modelo: ${formatearDiametro(planeta.diametroModelo)}`;
+      document.getElementById('escala-label').textContent    = `⌀ modelo: ${formatearDiametro(planeta.diametroModelo)}`;
 
-      document.getElementById('btn-ar').href = `ar.html?planet=${planeta.id}`;
-      const navAr = document.getElementById('nav-ar-link');
-      if (navAr) navAr.href = `ar.html?planet=${planeta.id}`;
+      document.getElementById('btn-ar').href      = `ar.html?planet=${planeta.id}`;
+      document.getElementById('nav-ar-link').href = `ar.html?planet=${planeta.id}`;
 
       // Stats
       const statsGrid = document.getElementById('stats-grid');
       const statItems = [
-        { label: '⌀ real',       valor: planeta.id === 'sol' ? '1.391.000 km' : planeta.diametroReal.toLocaleString('es-CL') + ' km' },
-        { label: '⌀ modelo',     valor: planeta.id === 'sol' ? '35 cm' : formatearDiametro(planeta.diametroModelo) },
+        { label: '⌀ real',       valor: fmtNum(planeta.diametroReal) + ' km' },
+        { label: '⌀ modelo',     valor: formatearDiametro(planeta.diametroModelo) },
         ...(planeta.id !== 'sol' ? [
-          { label: 'Dist. real',   valor: planeta.distanciaRealSol.toLocaleString('es-CL') + ' M km' },
-          { label: 'Dist. modelo', valor: planeta.distanciaModeloSol < 1000 ? planeta.distanciaModeloSol.toFixed(2) + ' m' : (planeta.distanciaModeloSol/1000).toFixed(3) + ' km' },
+          { label: 'Dist. real',   valor: fmtNum(planeta.distanciaRealSol, 1) + ' M km' },
+          { label: 'Dist. modelo', valor: formatearDistancia(planeta.distanciaModeloSol) },
         ] : []),
-        { label: 'Lunas',        valor: planeta.lunas.length > 0 ? String(planeta.lunas.length) : '0' },
+        { label: 'Lunas',        valor: String(planeta.lunas.length) },
       ];
       statItems.forEach(s => {
         statsGrid.innerHTML += `<div class="stat-card"><span class="stat-valor">${s.valor}</span><span class="stat-label">${s.label}</span></div>`;
@@ -236,7 +218,7 @@
             <div class="luna-item">
               <div class="luna-nombre">${luna.nombre}</div>
               <div class="luna-stats">
-                <span>⌀ ${luna.diametroReal.toLocaleString('es-CL')} km</span>
+                <span>⌀ ${fmtNum(luna.diametroReal)} km</span>
                 <span>modelo: ${formatearDiametro(luna.diametroModelo)}</span>
                 <span>dist. planeta: ${formatearDistancia(luna.distanciaModelo)}</span>
               </div>
@@ -259,13 +241,13 @@
                 <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${otro.color};flex-shrink:0"></span>
                 ${dir} ${otro.nombre}
               </span>
-              <span class="data-row-value">${dist < 1000 ? dist.toFixed(1)+' m' : (dist/1000).toFixed(3)+' km'}</span>
+              <span class="data-row-value">${formatearDistancia(dist)}</span>
             </div>`;
         });
       }
 
       // Mini mapa
-      setTimeout(() => {
+      {
         const map = L.map('mini-mapa', {
           center: [planeta.coords.lat, planeta.coords.lng],
           zoom: 15,
@@ -288,7 +270,7 @@
             color: isThis ? '#fff' : 'transparent', weight: isThis ? 1.5 : 0
           }).addTo(map).bindTooltip(op.nombre);
         });
-      }, 100);
+      }
 
       // Nav prev/next
       const nav      = document.getElementById('planeta-nav');
@@ -300,13 +282,13 @@
           <a href="planet.html?planet=${anterior.id}" class="planeta-nav-btn">
             <span class="planeta-nav-label"><span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> Anterior</span>
             <span class="planeta-nav-nombre">${anterior.nombre}</span>
-            <span class="planeta-nav-dist">${anterior.id !== 'sol' ? anterior.distanciaModeloSol.toFixed(1)+' m' : 'Centro'}</span>
+            <span class="planeta-nav-dist">${anterior.id !== 'sol' ? formatearDistancia(anterior.distanciaModeloSol) : 'Centro'}</span>
           </a>` : '<div></div>'}
         ${siguiente ? `
           <a href="planet.html?planet=${siguiente.id}" class="planeta-nav-btn siguiente">
             <span class="planeta-nav-label">Siguiente <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span></span>
             <span class="planeta-nav-nombre">${siguiente.nombre}</span>
-            <span class="planeta-nav-dist">${siguiente.distanciaModeloSol.toFixed(1)} m</span>
+            <span class="planeta-nav-dist">${formatearDistancia(siguiente.distanciaModeloSol)}</span>
           </a>` : '<div></div>'}
       `;
     })();
